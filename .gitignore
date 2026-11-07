@@ -1,0 +1,20 @@
+# Secrets (never commit a real key)
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node (frontend/dist IS committed so graders only need Python)
+node_modules/
+
+# Run logs (may contain user input)
+output/*.json
+
+# Local tooling
+.claude/
+.DS_Store
