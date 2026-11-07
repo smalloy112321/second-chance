@@ -8,6 +8,7 @@
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # Node (frontend/dist IS committed so graders only need Python)
 node_modules/

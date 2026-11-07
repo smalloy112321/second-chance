@@ -42,9 +42,19 @@ All AI calls use `gpt-6-luna` through Portkey. The model is set in `backend/agen
 | `backend/main.py` | FastAPI app: `GET /api/health`, `POST /api/hello`, and serves `frontend/dist` |
 | `backend/agents/config.py` | `MODEL_NAME`, `.env` loading, `require_api_key()`, `build_model()` |
 | `backend/usage.py` | Token meter: appends one row per model call to `output/usage_log.json`; per-session cap of 50,000 tokens |
-| `backend/prompts/`, `backend/data/`, `backend/rules/` | Empty for now |
+| `backend/rules/clean_slate.py` | Clean Slate rules engine (plain Python, no AI); spec in `backend/rules/clean_slate_rules_spec.md` |
+| `backend/data/ct_resources.json` | 40 Connecticut reentry resources, each with a source and date checked |
+| `backend/tests/` | The 14 Clean Slate test cases from the spec |
+| `backend/prompts/` | Empty for now |
 | `frontend/` | React + Vite + TypeScript source; `frontend/dist` is the built app |
 | `output/` | Run logs (`*.json` here are not committed) |
+
+## Running the tests
+
+```bash
+pip install -r backend/requirements-dev.txt
+python -m pytest -v
+```
 
 ## Changing the frontend (developers only)
 
