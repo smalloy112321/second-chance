@@ -7,53 +7,48 @@ Serves the API under /api and the built React app (frontend/dist) at /.
 
 from __future__ import annotations
 
+import asyncio
+import json
 from typing import Literal
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, UsageLimitExceeded, UsageLimits
 
+import orchestrator
+import resources
+import sessions
 import usage
 from agents import config
 
 HOST = "127.0.0.1"
 PORT = 8000
+MAX_MESSAGE_CHARS = 8000  # room for pasted case notes
 
 app = FastAPI(title="The Second Chance Pathway Planner")
 
 Mode = Literal["self_serve", "caseworker"]
-
-MODE_CONTEXT = {
-    "self_serve": "The person is a woman planning her own reentry after incarceration in Connecticut.",
-    "caseworker": "The person is a caseworker helping a client plan her reentry after incarceration in Connecticut.",
-}
-
-hello_agent = Agent(
-    name="hello",
-    instructions=(
-        "You greet people who are starting to use The Second Chance Pathway Planner. "
-        "Write two short, warm, plain-language sentences welcoming them and saying the planner "
-        "will help check Clean Slate eligibility, build a 30-day plan, and practice conversations. "
-        "Do not give legal advice. Do not use markdown."
-    ),
-)
-
-_model = None
+SessionId = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
 
 
-def _get_model():
-    global _model
-    if _model is None:
-        _model = config.build_model()
-    return _model
+class ChatRequest(BaseModel):
+    session_id: str = SessionId
+    mode: Mode
+    message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
 
 
 class HelloRequest(BaseModel):
     mode: Mode
-    session_id: str = Field(min_length=8, max_length=64)
+    session_id: str = SessionId
+
+
+GENERIC_ERROR = "Something went wrong on our side. Please try again in a moment."
+
+
+# ---- Health and smoke test ---------------------------------------------------------------
 
 
 @app.get("/api/health")
@@ -75,45 +70,105 @@ def health() -> dict:
     }
 
 
+hello_agent = Agent(
+    name="hello",
+    instructions=(
+        "Write two short, warm, plain-language sentences welcoming someone to The Second Chance "
+        "Pathway Planner. Do not give legal advice. Do not use markdown."
+    ),
+)
+
+
 @app.post("/api/hello")
 async def hello(req: HelloRequest) -> dict:
+    """One tiny gpt-6-luna call, to check the Portkey connection."""
     try:
         usage.check_session_cap(req.session_id)
-    except usage.SessionTokenCapExceeded as exc:
-        raise HTTPException(status_code=429, detail=str(exc))
-
-    try:
-        model = _get_model()
-    except RuntimeError as exc:  # missing key: say so plainly, never echo a value
-        raise HTTPException(status_code=503, detail=str(exc))
-
-    remaining = usage.session_tokens_remaining(req.session_id)
-    try:
         result = await hello_agent.run(
-            MODE_CONTEXT[req.mode] + " Greet them.",
-            model=model,
-            usage_limits=UsageLimits(request_limit=2, total_tokens_limit=remaining),
+            "Greet them.", model=config.build_model(),
+            usage_limits=UsageLimits(request_limit=2, total_tokens_limit=usage.session_tokens_remaining(req.session_id)),
         )
-    except UsageLimitExceeded:
+    except (usage.SessionTokenCapExceeded, UsageLimitExceeded):
         raise HTTPException(status_code=429, detail="This session reached its token limit.")
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    run_usage = usage.log_run("hello", result.new_messages(), session_id=req.session_id)
+    return {"reply": result.output.strip(), "usage": run_usage}
+
+
+# ---- Chat --------------------------------------------------------------------------------
+
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest) -> dict:
+    """Non-streaming version (for testing). Returns the final payload plus every event."""
+    events: list[dict] = []
+
+    async def collect(event: str, data: dict) -> None:
+        events.append({"event": event, "data": data})
+
+    try:
+        final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=collect)
     except Exception as exc:
-        print(f"[hello] model call failed: {type(exc).__name__}: {str(exc)[:200]}")
-        raise HTTPException(status_code=502, detail="The AI service did not respond. Please try again.")
+        print(f"[chat] {type(exc).__name__}: {str(exc)[:300]}")
+        raise HTTPException(status_code=502, detail=GENERIC_ERROR)
+    return {**final, "events": events}
 
-    messages = result.new_messages()
-    run_usage = usage.log_run("hello", messages, session_id=req.session_id)
 
-    reported = [m.model_name for m in messages if getattr(m, "model_name", None)]
-    if not all(config.is_allowed_model(name) for name in reported):
-        raise HTTPException(status_code=502, detail="Unexpected model in response; reply discarded.")
+def _sse(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, default=str)}\n\n"
 
-    return {
-        "reply": result.output.strip(),
-        "mode": req.mode,
-        "usage": run_usage,
-        "session_tokens_used": usage.session_tokens_used(req.session_id),
-        "session_token_cap": usage.SESSION_TOKEN_CAP,
-    }
+
+@app.post("/api/chat/stream")
+async def chat_stream(req: ChatRequest) -> StreamingResponse:
+    """Server-sent events: agent_started, agent_done, tool_called, verifier_issue,
+    safety_block, error, and finally final."""
+    queue: asyncio.Queue = asyncio.Queue()
+
+    async def emit(event: str, data: dict) -> None:
+        await queue.put((event, data))
+
+    async def runner() -> None:
+        try:
+            final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit)
+            await queue.put(("final", final))
+        except Exception as exc:
+            print(f"[chat/stream] {type(exc).__name__}: {str(exc)[:300]}")
+            await queue.put(("error", {"message": GENERIC_ERROR, "kind": "server"}))
+        finally:
+            await queue.put(None)
+
+    task = asyncio.create_task(runner())
+
+    async def events():
+        while True:
+            item = await queue.get()
+            if item is None:
+                break
+            yield _sse(*item)
+        await task
+
+    return StreamingResponse(
+        events(), media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.delete("/api/session/{session_id}")
+def clear_session(session_id: str) -> dict:
+    """'Clear my info': forget the conversation and profile held in memory."""
+    return {"cleared": sessions.delete(session_id)}
+
+
+@app.get("/api/usage/{session_id}")
+def session_usage(session_id: str) -> dict:
+    return usage.session_summary(session_id)
+
+
+@app.get("/api/resources")
+def all_resources() -> dict:
+    """The checked resource list, keyed by id; the frontend shows contact details from here."""
+    return {"resources": resources.by_id()}
 
 
 # ---- Built frontend (frontend/dist) -----------------------------------------------------

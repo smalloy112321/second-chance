@@ -2,7 +2,7 @@
 
 A web app that helps formerly incarcerated women in Connecticut, on their own or with a caseworker, check whether their record may have been erased under CT's Clean Slate law, build a 30-day reentry plan, and practice hard conversations.
 
-> **Status:** skeleton only. The landing page, a health check, one test call to gpt-6-luna, and the token meter work. The agents are not built yet.
+> **Status:** the five agents, the Clean Slate rules engine, and the web app work end to end. Conversation practice is not built yet.
 
 ## Run it
 
@@ -35,19 +35,32 @@ The app needs `PORTKEY_API_KEY` (see `.env.example`). It looks for `.env` in the
 
 All AI calls use `gpt-6-luna` through Portkey. The model is set in `backend/agents/config.py`.
 
-## What's in the repo
+## Try it
+
+Pick **I'm helping a client** and paste one of these notes (or use **I'm planning for myself** and answer one question at a time):
+
+1. **Likely erased:** "Client lives in New Haven. One misdemeanor (shoplifting), offense 2012-01-20, convicted 2012-03-01. Not family violence, not a sex offense, not DUI, not cannabis. Not on probation or parole. No pending cases. All sentences finished. One child, age 7, lives with her grandmother; no family court case. Staying with a friend tonight and this month. Has birth certificate and SS card but no state ID. No income. Goals: get ID, apply for SNAP, find work in food service."
+2. **Eligible on a future date:** "Client: Hartford. Class D felony larceny 3rd, offense Nov 2013, convicted 2014-01-10; misdemeanor breach of peace, offense April 2020, convicted 2020-05-05. Neither is family violence, sex offense, DUI, or cannabis. Not on probation or parole. No pending cases. All sentences complete. Two children (4 and 9) in DCF foster care; open family court case. In a shelter tonight and this month. Has SS card only. No income. Goals: get kids back, stable housing, a job." (Expected: misdemeanor on or after 2027-05-05, felony on or after 2030-05-05.)
+3. **Needs review:** "Client lives in Waterbury. One felony from around 2016 (drug sale; she doesn't know the class or maximum sentence). Not family violence or a sex offense, not DUI, not cannabis. Finished parole in 2021, not on supervision, no pending cases, all sentences complete. No children. Staying with her sister tonight and this month. Has state ID, birth certificate, and SS card. Works part-time. Goals: clear her record, full-time work, own apartment."
+
+A full run takes about a minute and costs well under one cent. Each agent lights up in the **Agent activity** panel as it runs.
+
+## How it works
+
+`safety_guard → intake (until complete) → screener → planner → verifier`. Every message goes through the safety guard first. If the verifier rejects the plan, the planner revises once; if it is still rejected, the plan is shown with a "Needs human review" banner.
 
 | Path | What it does |
 | --- | --- |
-| `backend/main.py` | FastAPI app: `GET /api/health`, `POST /api/hello`, and serves `frontend/dist` |
-| `backend/agents/config.py` | `MODEL_NAME`, `.env` loading, `require_api_key()`, `build_model()` |
-| `backend/usage.py` | Token meter: appends one row per model call to `output/usage_log.json`; per-session cap of 50,000 tokens |
-| `backend/rules/clean_slate.py` | Clean Slate rules engine (plain Python, no AI); spec in `backend/rules/clean_slate_rules_spec.md` |
-| `backend/data/ct_resources.json` | 40 Connecticut reentry resources, each with a source and date checked |
-| `backend/tests/` | The 14 Clean Slate test cases from the spec |
-| `backend/prompts/` | Empty for now |
+| `backend/main.py` | FastAPI app: `/api/chat`, `/api/chat/stream` (live events), `/api/usage/{session_id}`, `/api/resources`, `/api/session/{id}` (Clear my info), `/api/health`; serves `frontend/dist` |
+| `backend/orchestrator.py` | Runs the agents in order, with the single revision loop |
+| `backend/agents/` | One file per agent, plus `config.py` (model + `.env`), `runtime.py` (token cap, logging, live events), `reference.py` (cached prompt prefix) |
+| `backend/prompts/` | Agent instructions; `_shared.md` is added to every agent |
+| `backend/rules/clean_slate.py` | Clean Slate rules engine (plain Python, no AI); spec in `clean_slate_rules_spec.md` |
+| `backend/data/ct_resources.json` | 40 checked Connecticut resources; contact details are shown from here, never written by the AI |
+| `backend/data/prices.json` | gpt-6-luna prices used for the cost estimate (MGT 409 Lecture 11) |
+| `backend/usage.py`, `backend/audit.py` | Token log (`output/usage_log.json`, 150,000-token cap per session) and audit trail (`output/audit_trail.json`); rows are only ever added |
+| `backend/tests/` | Rules engine (14 spec cases + 1), safety guard, verifier code checks, screener guards |
 | `frontend/` | React + Vite + TypeScript source; `frontend/dist` is the built app |
-| `output/` | Run logs (`*.json` here are not committed) |
 
 ## Running the tests
 

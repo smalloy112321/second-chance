@@ -15,10 +15,10 @@ from datetime import datetime, timezone
 
 from pydantic_ai.messages import ModelResponse
 
-from agents.config import OUTPUT_DIR
+from agents.config import DATA_DIR, OUTPUT_DIR
 
 USAGE_LOG_PATH = OUTPUT_DIR / "usage_log.json"
-SESSION_TOKEN_CAP = 50_000  # input + output tokens one browser session may spend
+SESSION_TOKEN_CAP = 150_000  # input + output tokens one browser session may spend (~$0.02 at class prices)
 
 
 class SessionTokenCapExceeded(RuntimeError):
@@ -129,3 +129,51 @@ def check_session_cap(session_id: str) -> None:
         raise SessionTokenCapExceeded(
             f"This session has used {used:,} of its {SESSION_TOKEN_CAP:,}-token limit."
         )
+
+
+# ---- Per-session totals and estimated cost --------------------------------------------------
+
+PRICES_PATH = DATA_DIR / "prices.json"
+
+
+def _prices() -> dict:
+    """gpt-6-luna prices per 1M tokens (class price table, MGT 409 Lecture 11)."""
+    data = json.loads(PRICES_PATH.read_text(encoding="utf-8"))
+    return {**data["gpt-6-luna"], "source": data.get("source", "")}
+
+
+def estimate_cost(input_tokens: int, cached_input_tokens: int, output_tokens: int) -> float:
+    """USD. Cached tokens are part of input_tokens and billed at the cached rate."""
+    p = _prices()
+    uncached = max(0, input_tokens - cached_input_tokens)
+    return (
+        uncached * p["input_per_1m"] + cached_input_tokens * p["cached_input_per_1m"]
+        + output_tokens * p["output_per_1m"]
+    ) / 1_000_000
+
+
+def session_summary(session_id: str) -> dict:
+    """Totals per agent and overall for one session, from output/usage_log.json."""
+    with _lock:
+        rows = [r for r in _read_rows() if r.get("session_id") == session_id]
+    keys = ("input_tokens", "cached_input_tokens", "output_tokens")
+    per_agent: dict[str, dict] = {}
+    for r in rows:
+        a = per_agent.setdefault(r["agent"], {"model_calls": 0, **{k: 0 for k in keys}})
+        a["model_calls"] += 1
+        for k in keys:
+            a[k] += int(r.get(k, 0))
+    overall = {"model_calls": sum(a["model_calls"] for a in per_agent.values()),
+               **{k: sum(a[k] for a in per_agent.values()) for k in keys}}
+    for block in (*per_agent.values(), overall):
+        block["total_tokens"] = block["input_tokens"] + block["output_tokens"]
+        block["estimated_cost_usd"] = round(estimate_cost(*(block[k] for k in keys)), 6)
+    p = _prices()
+    return {
+        "session_id": session_id,
+        "per_agent": per_agent,
+        "overall": overall,
+        "session_token_cap": SESSION_TOKEN_CAP,
+        "prices_per_1m": {k: v for k, v in p.items() if k != "source"},
+        "price_source": p["source"],
+    }

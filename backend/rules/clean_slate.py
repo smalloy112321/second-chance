@@ -87,9 +87,12 @@ class Conviction:
     statute: str | None = None
     is_family_violence: bool | None = None
     is_sex_offense: bool | None = None
-    is_dui: bool = False
-    is_cannabis_possession: bool = False
-    is_21a_279c_before_2015_10_01: bool = False
+    # None = "she doesn't know". Unknown DUI -> needs_review (DUI changes the wait from 7 to
+    # 10 years). Unknown cannabis / 21a-279(c) are treated as "no", which can only make the
+    # estimate later or stricter, never earlier.
+    is_dui: bool | None = False
+    is_cannabis_possession: bool | None = False
+    is_21a_279c_before_2015_10_01: bool | None = False
 
     def __post_init__(self) -> None:
         if self.level not in LEVELS:
@@ -125,14 +128,14 @@ def normalize_statute(statute: str | None) -> str | None:
 
 
 def _is_21a_279c(c: Conviction) -> bool:
-    return c.is_21a_279c_before_2015_10_01 and (
+    return bool(c.is_21a_279c_before_2015_10_01) and (
         c.conviction_date is None or c.conviction_date < DRUG_21A_279C_CUTOFF
     )
 
 
 def _cannabis_auto_erased(c: Conviction) -> bool:
     return (
-        c.is_cannabis_possession
+        bool(c.is_cannabis_possession)
         and c.conviction_date is not None
         and CANNABIS_AUTO_START <= c.conviction_date <= CANNABIS_AUTO_END
     )
@@ -216,6 +219,8 @@ def _type_check(c: Conviction, all_convictions: list[Conviction]) -> dict | None
         return _row(c, "needs_review", "NEEDS_REVIEW_SEX_OFFENSE_UNKNOWN")
     if c.offense_date is None or c.conviction_date is None:
         return _row(c, "needs_review", "NEEDS_REVIEW_DATE_UNKNOWN")
+    if c.is_dui is None:  # SPEC GAP: spec types is_dui as bool; unknown must not be guessed
+        return _row(c, "needs_review", "NEEDS_REVIEW_DUI_UNKNOWN")
 
     # 8. Eligible type
     return None

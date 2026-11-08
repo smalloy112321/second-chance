@@ -1,0 +1,102 @@
+"""Runs the agents in order for one user message.
+
+safety_guard (every message) -> intake (until complete) -> screener -> planner -> verifier
+If the verifier does not approve, the planner revises ONCE and the verifier checks again.
+If it still isn't approved, the plan is returned with a "needs human review" flag.
+"""
+
+from __future__ import annotations
+
+import resources
+import sessions
+from agents import intake, planner, safety_guard, screener, verifier
+from agents.runtime import LIMIT_MESSAGE, BudgetExceeded, Ctx, Emit, _no_emit
+
+# Next steps the UI can show (wording and forms from clean_slate_rules_spec.md section 5).
+NEXT_STEPS = {
+    "confirm_record_spbi": {
+        "title": "Get your official record from State Police",
+        "detail": "Request a current record from the State Police, online or by mail with form DPS-0846-C.",
+        "resource_ids": ["ct-clean-slate-erasure"],
+    },
+    "hearing_request": {
+        "title": "If it should be erased but still shows, ask for a hearing",
+        "detail": "Send a record check dated on or after 1/1/2024 plus the Clean Slate hearing form to DESPP.cshearing@ct.gov.",
+        "resource_ids": [],
+    },
+    "petition_pre_2000": {
+        "title": "Ask a court to erase older convictions",
+        "detail": "Older convictions are not erased automatically. You can petition the court (form JD-CR-202).",
+        "resource_ids": [],
+    },
+    "legal_aid_referral": {
+        "title": "Talk with free legal aid",
+        "detail": "New Haven Legal Assistance (Greater New Haven) or Statewide Legal Services (elsewhere in CT).",
+        "resource_ids": ["new-haven-legal-assistance", "statewide-legal-services-ct"],
+    },
+}
+
+DONE_MESSAGE = "Your plan is ready. To start over, use \"Clear my info\"."
+
+
+def _result_payload(s: sessions.Session) -> dict:
+    db = resources.by_id()
+    used_ids = {st.resource_id for st in s.plan.steps() if st.resource_id in db} if s.plan else set()
+    steps = [
+        {"code": code, **NEXT_STEPS[code]}
+        for code in (s.screener.next_step_codes if s.screener else [])
+        if code in NEXT_STEPS
+    ]
+    for step in steps:
+        used_ids.update(i for i in step["resource_ids"] if i in db)
+    return {
+        "type": "result",
+        "rules": s.rules_result,
+        "screener": s.screener.model_dump() if s.screener else None,
+        "plan": s.plan.model_dump() if s.plan else None,
+        "verifier": s.verifier.model_dump() if s.verifier else None,
+        "needs_human_review": s.needs_human_review,
+        "next_steps": steps,
+        "resources": {i: db[i] for i in sorted(used_ids)},  # contact details come from the checked list
+    }
+
+
+async def _build_plan(ctx: Ctx, s: sessions.Session) -> dict:
+    await screener.run(ctx, s)
+    plan = await planner.run(ctx, s)
+    check = await verifier.run(ctx, s, plan)
+    if not check.approved:
+        plan = await planner.run(ctx, s, previous=plan, issues=check.issues)
+        check = await verifier.run(ctx, s, plan)
+    s.plan, s.verifier = plan, check
+    s.needs_human_review = not check.approved
+    s.stage = "done"
+    s.final = _result_payload(s)
+    return s.final
+
+
+async def handle_message(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None) -> dict:
+    s = sessions.get_or_create(session_id, mode)
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    async with s.lock:
+        try:
+            safety = await safety_guard.run(ctx, message)
+            if safety.status != "ok":
+                shown = safety_guard.user_message(safety)
+                payload = {"type": "safety", "status": safety.status, "crisis_type": safety.crisis_type, **shown}
+                await emit("safety_block", payload)
+                return payload
+
+            if s.stage == "done":
+                return {"type": "info", "reply": DONE_MESSAGE, **({"result": s.final} if s.final else {})}
+
+            turn = await intake.run(ctx, s, message)
+            if not turn.is_complete:
+                return {"type": "question", "reply": turn.reply, "missing_fields": turn.missing_fields}
+
+            result = await _build_plan(ctx, s)
+            return {**result, "reply": turn.reply}
+        except BudgetExceeded:
+            payload = {"type": "limit", "reply": LIMIT_MESSAGE}
+            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
+            return payload
