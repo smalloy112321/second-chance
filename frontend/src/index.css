@@ -87,7 +87,7 @@ main { flex: 1; }
 .choice:hover .choice-cta { background: var(--tint); }
 .choice-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; line-height: 1.25; }
 @media (min-width: 860px) and (max-width: 1100px) { .choice-title { font-size: 1.15rem; } }  /* keep titles to two lines on tablet-width screens */
-.choice-sub { font-size: 0.8rem; line-height: 1.45; }
+.choice-sub { font-size: 0.8rem; line-height: 1.45; margin-bottom: 1.25rem; }  /* breathing room above the Get started button */
 
 .mode-pill {
   display: inline-flex;
