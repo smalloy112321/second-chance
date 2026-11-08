@@ -83,6 +83,13 @@ pip install -r backend/requirements-dev.txt
 python -m pytest -v
 ```
 
+The self-serve questionnaire has its own small tests (plain Node, no extra packages):
+
+```bash
+node frontend/src/qaForm.test.ts
+node frontend/src/qaRules.test.ts
+```
+
 ## Changing the frontend (developers only)
 
 The only frontend dependency beyond React is `@fontsource/outfit` (SIL Open Font License), which bundles the Outfit font used for the logo and headings, so the site makes no requests to outside font services.

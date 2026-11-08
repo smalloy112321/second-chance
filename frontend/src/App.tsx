@@ -5,6 +5,7 @@ import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
+import SelfServeFlow from './SelfServeFlow'
 import {
   AGENTS,
   type ActivityItem,
@@ -267,10 +268,10 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
     }
   }
 
-  const send = async () => {
-    const text = input.trim()
+  const send = async (override?: string) => {
+    const text = (override ?? input).trim()
     if (!text || busy) return
-    setInput('')
+    if (override === undefined) setInput('')
     setMessages((m) => [...m, { role: 'user', text }])
     setAgents((all) =>
       Object.fromEntries(Object.entries(all).map(([k, v]) => [k, { ...v, status: 'idle' }])) as Record<
@@ -342,6 +343,23 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           initialDifficulty={launch.difficulty}
           onBack={() => setView('plan')}
           onTurnDone={refreshUsage}
+        />
+      ) : !caseworker ? (
+        <SelfServeFlow
+          key={sessionId}
+          messages={messages}
+          busy={busy}
+          agents={agents}
+          finished={!!result}
+          db={db}
+          onSubmit={(text) => void send(text)}
+          results={
+            result ? (
+              <div ref={resultsRef}>
+                <Results result={result} mode={mode} db={db} onPractice={() => setView('practice')} />
+              </div>
+            ) : null
+          }
         />
       ) : (
       <div className={`workspace ${caseworker ? 'is-caseworker' : 'is-self'}`}>
