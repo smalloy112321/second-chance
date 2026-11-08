@@ -74,6 +74,7 @@ Rehearse a hard conversation with a role-play partner while a coach scores each 
 | `backend/agents/practice.py` | Practice Room: role-play, coach, and summary agents plus their code guards; scenarios in `backend/data/scenarios.json` |
 | `backend/tests/` | Rules engine (14 spec cases + 1), safety guard, verifier code checks, screener guards, intake history, Practice Room guards and privacy, prompt rendering |
 | `frontend/` | React + Vite + TypeScript source; `frontend/dist` is the built app |
+| `frontend/src/Logo.tsx` | The "road to the horizon" logo; colors are navy `#122056`, periwinkle `#5865DC`, lavender `#EEEFFD`, nude `#F2E6E1` on `#FAFAFD` |
 
 ## Running the tests
 
@@ -83,6 +84,8 @@ python -m pytest -v
 ```
 
 ## Changing the frontend (developers only)
+
+The only frontend dependency beyond React is `@fontsource/outfit` (SIL Open Font License), which bundles the Outfit font used for the logo and headings, so the site makes no requests to outside font services.
 
 ```bash
 cd frontend

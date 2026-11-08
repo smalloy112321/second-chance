@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import AgentPanel from './AgentPanel'
+import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
@@ -84,8 +85,7 @@ function Shell({ children, footer }: { children: React.ReactNode; footer?: React
   return (
     <div className="page">
       <header className="site-header no-print">
-        <span className="logo" aria-hidden="true" />
-        <span className="site-name">Second Chance Pathway Planner</span>
+        <Logo />
       </header>
       <main id="main">{children}</main>
       <footer className="site-footer">
