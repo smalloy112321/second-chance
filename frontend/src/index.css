@@ -50,7 +50,7 @@ button { font: inherit; cursor: pointer; }
 }
 
 .site-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0 2rem; }
-.logo { display: inline-flex; align-items: center; gap: 0.7rem; }
+.logo { display: inline-flex; align-items: center; gap: 0.7rem; border: 3px solid var(--navy); padding: 0.55rem 1rem 0.55rem 0.7rem; background: var(--bg); }
 .logo-mark { flex: none; display: block; }
 .logo-words { display: flex; flex-direction: column; line-height: 1.1; }
 .logo-name { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--navy); letter-spacing: -0.01em; }
