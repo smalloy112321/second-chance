@@ -258,6 +258,8 @@ if (config.FRONTEND_DIST / "index.html").exists():
         file = (config.FRONTEND_DIST / path).resolve()
         if path and file.is_file() and config.FRONTEND_DIST.resolve() in file.parents:
             return FileResponse(file)
+        if "." in path.rsplit("/", 1)[-1]:  # a missing file (e.g. hero-photo.jpg) is a 404, not the app
+            raise HTTPException(status_code=404)
         return FileResponse(config.FRONTEND_DIST / "index.html")
 else:
 

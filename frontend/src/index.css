@@ -26,7 +26,7 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-height: 100vh; }
+body { margin: 0; min-height: 100vh; overflow-x: clip; }
 
 h1 {
   font-family: var(--font-display);
@@ -49,7 +49,7 @@ button { font: inherit; cursor: pointer; }
   flex-direction: column;
 }
 
-.site-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0 2rem; }
+.site-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0 1rem; }
 .logo { display: inline-flex; align-items: center; gap: 0.7rem; border: 3px solid var(--navy); padding: 0.55rem 1rem 0.55rem 0.7rem; background: var(--bg); }
 .logo-mark { flex: none; display: block; }
 .logo-words { display: flex; flex-direction: column; line-height: 1.1; }
@@ -62,7 +62,7 @@ main { flex: 1; }
 .choose-prompt { font-weight: 600; margin: 0 0 0.75rem; }
 
 .choices { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-@media (min-width: 720px) { .choices { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 860px) { .choices { grid-template-columns: repeat(3, 1fr); } }
 
 .choice {
   display: flex;
@@ -80,12 +80,14 @@ main { flex: 1; }
 }
 .choice:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(18, 32, 86, 0.16); }
 .choice:active { transform: translateY(0); }
-.choice-self { background: var(--accent); }
-.choice-self:hover { background: var(--accent-hover); }
-.choice-case { background: var(--navy); }
-.choice-case:hover { background: var(--navy-hover); }
+/* All three choices share one color, with a clear 'Start' button inside each card */
+.choice-self, .choice-case, .choice-practice { background: var(--accent); }
+.choice-self:hover, .choice-case:hover, .choice-practice:hover { background: var(--accent-hover); }
+.choice-cta { display: inline-block; align-self: flex-start; margin-top: auto; background: #fff; color: var(--navy); font-weight: 700; font-size: 0.95rem; padding: 0.5rem 1rem; border-radius: 999px; }
+.choice:hover .choice-cta { background: var(--tint); }
 .choice-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; line-height: 1.25; }
-.choice-sub { font-size: 0.95rem; opacity: 0.95; }
+@media (min-width: 860px) and (max-width: 1100px) { .choice-title { font-size: 1.15rem; } }  /* keep titles to two lines on tablet-width screens */
+.choice-sub { font-size: 0.8rem; line-height: 1.45; }
 
 .mode-pill {
   display: inline-flex;
@@ -149,7 +151,7 @@ main { flex: 1; }
 .site-footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--ink-soft); }
 
 /* ---- Workspace -------------------------------------------------------------------------- */
-.landing { max-width: 52rem; }
+.landing { max-width: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .site-footer p { margin: 0.25rem 0; }
 .usage-meter { font-variant-numeric: tabular-nums; color: var(--navy); }
@@ -281,13 +283,6 @@ main { flex: 1; }
 }
 
 /* ---- Practice room ----------------------------------------------------------------------- */
-.just-practice {
-  display: flex; flex-direction: column; gap: 0.3rem; width: 100%; margin-top: 1rem; text-align: left;
-  padding: 1.1rem 1.5rem; border-radius: 1.25rem; border: 2px dashed var(--accent); background: var(--surface); color: var(--navy);
-}
-.just-practice:hover { background: var(--tint); }
-.just-practice-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
-.just-practice .choice-sub { color: var(--ink-soft); }
 
 .practice { max-width: 52rem; }
 .practice h1 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 0.25rem; }
@@ -368,3 +363,15 @@ main { flex: 1; }
 .score-label { display: block; font-size: 0.8rem; color: var(--ink-soft); }
 .score-num { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--navy); }
 .score-arrow { font-size: 1.5rem; color: var(--ink-soft); }
+
+/* ---- Homepage photo banner (layout B) ---------------------------------------------------- */
+.hero { margin: 0 calc(50% - 50vw) 2rem; }          /* full-bleed: edge to edge of the window */
+.hero-photo { display: block; width: 100%; height: clamp(170px, 26vw, 330px); object-fit: cover; object-position: 55% 30%; filter: grayscale(1) contrast(1.05); }  /* remove the filter for the original golden color */
+.hero-band { background: var(--navy); color: #fff; }
+.hero-inner { max-width: 76rem; margin: 0 auto; padding: 1.25rem 1.25rem 1.1rem; }
+/* Option B: one size throughout; first sentence brighter and bolder */
+.hero-text { margin: 0; max-width: 58rem; font-family: var(--font-display); font-weight: 500; font-size: clamp(1.3rem, 2.9vw, 1.75rem); line-height: 1.4; color: #a9b1f5; }  /* light periwinkle: 7.5:1 on navy, clearly distinct from the white first sentence */
+.hero-text strong { font-weight: 600; color: #fff; }
+.hero-figure { position: relative; margin: 0; }
+.footer-source { font-size: 0.75rem; }
+.footer-source a { color: var(--accent); }

@@ -93,35 +93,77 @@ function Shell({ children, footer }: { children: React.ReactNode; footer?: React
         <p>
           This planner gives general information, not legal advice. For your situation, talk with a legal aid lawyer.
         </p>
+        <p className="footer-source">
+          Clean Slate figure (170,000 people) source:{' '}
+          <a href="https://ctmirror.org/2026/07/15/ct-clears-clean-slate-backlog/" target="_blank" rel="noreferrer">
+            CT Mirror, July 15, 2026
+          </a>
+          . Homepage photo (illustrative):{' '}
+          <a href="https://unsplash.com/photos/four-women-laughing-outdoors-together-EU-Oc9VQHRg" target="_blank" rel="noreferrer">
+            Crosby Hinze on Unsplash
+          </a>
+          .
+        </p>
       </footer>
     </div>
   )
 }
 
 function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => void }) {
+  const [photoOk, setPhotoOk] = useState(true)
   return (
     <Shell>
       <section className="landing" aria-labelledby="landing-title">
-        <h1 id="landing-title">Your next chapter starts with a plan.</h1>
-        <p className="lead">
-          Check whether your Connecticut record may have been cleared under the Clean Slate law, build a 30-day plan,
-          and practice the conversations that matter.
-        </p>
+        <h1 id="landing-title" className="sr-only">
+          The Second Chance Pathway Planner
+        </h1>
+        <div className="hero">
+          {photoOk && (
+            <figure className="hero-figure">
+              <img
+                className="hero-photo"
+                src="/hero-photo.jpg"
+                alt="Four women with their arms around each other, laughing together outdoors"
+                onError={() => setPhotoOk(false)}
+              />
+            </figure>
+          )}
+          <div className="hero-band">
+            <div className="hero-inner">
+              <p className="hero-text">
+                <strong>Connecticut’s Clean Slate law has erased the convictions of 170,000 people.</strong> Check if
+                your record was cleared, build a 30-day plan, and practice the conversations that matter most.
+              </p>
+            </div>
+          </div>
+        </div>
         <p className="choose-prompt">Who are you planning for?</p>
         <div className="choices">
           <button type="button" className="choice choice-self" onClick={() => onChoose('self_serve')}>
-            <span className="choice-title">{MODE_LABEL.self_serve}</span>
+            <span className="choice-title">
+              I'm planning
+              <br />for myself
+            </span>
             <span className="choice-sub">Go at your own pace. One question at a time.</span>
+            <span className="choice-cta">Get started →</span>
           </button>
           <button type="button" className="choice choice-case" onClick={() => onChoose('caseworker')}>
-            <span className="choice-title">{MODE_LABEL.caseworker}</span>
+            <span className="choice-title">
+              I'm helping
+              <br />a client
+            </span>
             <span className="choice-sub">Paste case notes and get a plan you can print.</span>
+            <span className="choice-cta">Get started →</span>
+          </button>
+          <button type="button" className="choice choice-practice" onClick={() => onChoose('self_serve', 'practice')}>
+            <span className="choice-title">
+              I want to practice
+              <br />a conversation
+            </span>
+            <span className="choice-sub">Practice with a boss, landlord, or social worker.</span>
+            <span className="choice-cta">Get started →</span>
           </button>
         </div>
-        <button type="button" className="just-practice" onClick={() => onChoose('self_serve', 'practice')}>
-          <span className="just-practice-title">Just practice a conversation</span>
-          <span className="choice-sub">Rehearse a job interview, an apartment showing, or a meeting with a social worker.</span>
-        </button>
       </section>
     </Shell>
   )
