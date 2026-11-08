@@ -33,8 +33,14 @@ test('answer labels are plain and consistent', () => {
   assert.equal(statusLabel('likely_erased_cannabis').label, 'Likely erased')
   assert.equal(statusLabel('not_eligible').label, 'Likely not covered')
   assert.equal(statusLabel('eligible_on').label, 'Likely to be erased on a later date')
-  assert.equal(statusLabel('not_yet_supervision').label, 'Likely erased after probation, parole, or an open case ends')
+  assert.equal(statusLabel('not_yet_supervision').label, 'Likely erased once probation or parole ends')
   assert.equal(statusLabel('petition_pre_2000').label, 'Can be erased if you ask a court')
+})
+
+test('label colors: later date and court petition are green, not covered is red', () => {
+  assert.equal(statusLabel('eligible_on').tone, 'green')
+  assert.equal(statusLabel('petition_pre_2000').tone, 'green')
+  assert.equal(statusLabel('not_eligible').tone, 'red')
 })
 
 test('a past waiting date is never shown; the note says what she is waiting on', () => {

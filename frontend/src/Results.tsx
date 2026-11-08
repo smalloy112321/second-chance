@@ -102,14 +102,14 @@ export default function Results({
             const note = waitingNote(c)
             return (
               <li key={c.id}>
-                <div className="conviction-row">
-                  <span className="conviction-desc">{c.description}</span>
-                  <Badge status={c.status} />
-                </div>
+                <div className="conviction-desc">{c.description}</div>
                 <div className="conviction-meta">
                   <span>{convictedLine(c)}</span>
                   {later && <span>{later}</span>}
                   {caseworker && <span className="code">{c.reason_code}</span>}
+                </div>
+                <div className="conviction-outcome">
+                  <Badge status={c.status} />
                 </div>
                 {note && <p className="conviction-note">{note}</p>}
               </li>
@@ -156,7 +156,7 @@ export default function Results({
                   )}
                   {s.resource_ids.map((id) => {
                     const r = lookup(id)
-                    return r ? <ResourceCard key={id} r={r} hideNotes /> : null
+                    return r ? <ResourceCard key={id} r={r} /> : null
                   })}
                 </li>
               ))}

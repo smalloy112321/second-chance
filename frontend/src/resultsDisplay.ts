@@ -16,7 +16,7 @@ export type RulesConvictionLike = {
   conviction_date?: string | null
 }
 export type RulesLike = { overall: string; convictions: RulesConvictionLike[] }
-export type Tone = 'green' | 'blue' | 'gray' | 'amber' | 'neutral'
+export type Tone = 'green' | 'blue' | 'gray' | 'amber' | 'red' | 'neutral'
 
 export const WAITING = new Set(['not_yet_supervision', 'not_yet_sentence'])
 
@@ -25,14 +25,14 @@ export const STATUS_LABEL: Record<string, { label: string; tone: Tone }> = {
   likely_erased: { label: 'Likely erased', tone: 'green' },
   likely_erased_cannabis: { label: 'Likely erased', tone: 'green' },
   partly_erased: { label: 'Partly erased', tone: 'green' },
-  eligible_on: { label: 'Likely to be erased on a later date', tone: 'blue' },
-  not_yet_supervision: { label: 'Likely erased after probation, parole, or an open case ends', tone: 'blue' },
+  eligible_on: { label: 'Likely to be erased on a later date', tone: 'green' },
+  not_yet_supervision: { label: 'Likely erased once probation or parole ends', tone: 'blue' },
   not_yet_sentence: { label: 'Likely erased after your sentence is finished', tone: 'blue' },
-  petition: { label: 'Can be erased if you ask a court', tone: 'gray' },
-  petition_pre_2000: { label: 'Can be erased if you ask a court', tone: 'gray' },
-  petition_cannabis: { label: 'Can be erased if you ask a court', tone: 'gray' },
+  petition: { label: 'Can be erased if you ask a court', tone: 'green' },
+  petition_pre_2000: { label: 'Can be erased if you ask a court', tone: 'green' },
+  petition_cannabis: { label: 'Can be erased if you ask a court', tone: 'green' },
   needs_review: { label: 'Needs review', tone: 'amber' },
-  not_eligible: { label: 'Likely not covered', tone: 'neutral' },
+  not_eligible: { label: 'Likely not covered', tone: 'red' },
 }
 
 export const statusLabel = (status: string) => STATUS_LABEL[status] ?? { label: status, tone: 'neutral' as Tone }

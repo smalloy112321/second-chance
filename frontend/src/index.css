@@ -203,13 +203,14 @@ main { flex: 1; }
 .badge-green { background: #e3f1e6; color: #1e5b2e; border-color: #b7dbc0; }
 .badge-blue { background: #ddf0fa; color: #0e4d73; border-color: #a9d3ee; }  /* sky: distinct from the periwinkle brand */
 .badge-gray { background: #ecebe9; color: #45433f; border-color: #d3d0cb; }
+.badge-red { background: var(--error-bg); color: var(--error-ink); border-color: #ecc3c0; }
 .badge-amber { background: #fdf0d8; color: #7a4a06; border-color: #efd29c; }
 .badge-neutral { background: var(--surface); color: var(--ink-soft); border-color: var(--line); }
 
 .conviction-list { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.5rem; }
 .conviction-list li { background: var(--bg); border-radius: 0.75rem; padding: 0.6rem 0.8rem; }
-.conviction-row { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-.conviction-row .badge { white-space: normal; text-align: center; max-width: 100%; }
+.conviction-outcome { margin-top: 0.45rem; }  /* the outcome always sits on its own line, below the date */
+.conviction-outcome .badge { white-space: normal; max-width: 100%; }
 .conviction-desc { font-weight: 600; }
 .conviction-meta { display: flex; gap: 1rem; font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.2rem; flex-wrap: wrap; }
 .code { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; background: var(--tint); padding: 0.05rem 0.4rem; border-radius: 0.3rem; }
@@ -424,8 +425,11 @@ main { flex: 1; }
 .qa-warn { margin: 0; background: #fdf0d8; color: #6b4206; border-radius: 0.6rem; padding: 0.6rem 0.8rem; font-size: 0.88rem; }
 
 .qa-nav { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 1.4rem; }
-.qa-next { min-width: 8rem; }
 .qa-nav .btn { white-space: nowrap; }
+.qa-nav .btn-quiet { flex: 0 0 auto; }
+.qa-next { flex: 1 1 auto; min-width: 0; max-width: 16rem; margin-left: auto; }  /* fills the space next to Back on phones */
+.qa-nav .qa-next { white-space: normal; line-height: 1.2; }  /* long labels wrap inside the button instead of spilling out */
+@media (max-width: 420px) { .qa-nav .btn { padding-left: 0.9rem; padding-right: 0.9rem; } }
 .qa-error { background: var(--error-bg); color: var(--error-ink); border-radius: 0.6rem; padding: 0.6rem 0.8rem; font-size: 0.9rem; }
 .qa-type { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
 .qa-type input { flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 0.7rem 0.9rem; border: 2px solid var(--tint-strong); border-radius: 0.8rem; }
@@ -448,6 +452,7 @@ main { flex: 1; }
 .step-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.2rem 0 0.6rem; }
 .step-link { display: inline-block; background: var(--tint); color: var(--navy); border: 1.5px solid var(--tint-strong); border-radius: 0.6rem; padding: 0.45rem 0.8rem; font-weight: 600; font-size: 0.9rem; text-decoration: none; }
 .step-link:hover { background: var(--tint-strong); }
+.step-link, .step-main, .step-how li { overflow-wrap: anywhere; max-width: 100%; }  /* long emails and URLs stay inside the card on phones */
 
 /* Recommended next steps: one clear action per step */
 .steps-title { font-family: var(--font-display); font-size: 1.15rem; color: var(--navy); margin: 1.25rem 0 0.6rem; }
