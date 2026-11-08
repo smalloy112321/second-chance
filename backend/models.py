@@ -62,6 +62,7 @@ class IDs(BaseModel):
 
 
 class Profile(BaseModel):
+    first_name: str | None = Field(None, description="Only if she offers it.")
     town: str | None = None
     convictions: list[ProfileConviction] = Field(default_factory=list)
     on_supervision_now: bool | None = None
@@ -136,3 +137,45 @@ class VerifierIssue(BaseModel):
 class VerifierResult(BaseModel):
     approved: bool
     issues: list[VerifierIssue] = Field(default_factory=list)
+
+
+# ---- Practice room (Step 4) ---------------------------------------------------------------
+
+Difficulty = Literal["friendly", "neutral", "skeptical"]
+SKILLS = ("honest_and_accurate", "brief", "ownership", "forward", "calm_confidence")
+
+
+class RoleplayLine(BaseModel):
+    line: str
+    ended: bool = False
+
+
+class CoachScores(BaseModel):
+    # Plain ints: the app clamps them to 1-3 in code instead of making the model retry.
+    honest_and_accurate: int = 2
+    brief: int = 2
+    ownership: int = 2
+    forward: int = 2
+    calm_confidence: int = 2
+
+    def clamped(self) -> "CoachScores":
+        return CoachScores(**{k: min(3, max(1, int(v))) for k, v in self.model_dump().items()})
+
+    def total(self) -> int:
+        return sum(self.model_dump().values())
+
+
+class CoachFeedback(BaseModel):
+    scores: CoachScores
+    strength: str
+    tip: str
+    try_saying: str
+    legal_fact_used: str | None = None
+
+
+class CoachSummary(BaseModel):
+    summary: str
+    best_quote: str
+    practice_next: str
+    score_first: float
+    score_last: float

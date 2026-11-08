@@ -88,14 +88,19 @@ export type ChatMessage =
   | { role: 'error'; text: string }
 
 export const AGENTS = ['safety_guard', 'intake', 'screener', 'planner', 'verifier'] as const
-export type AgentName = (typeof AGENTS)[number]
+export const PRACTICE_AGENTS = ['safety_guard', 'coach', 'roleplay', 'coach_summary'] as const
+export type AgentName = string
 
-export const AGENT_LABEL: Record<AgentName, string> = {
+export const AGENT_LABEL: Record<string, string> = {
   safety_guard: 'Safety guard',
   intake: 'Intake',
   screener: 'Clean Slate screener',
   planner: 'Pathway planner',
   verifier: 'Verifier',
+  coach: 'Coach',
+  roleplay: 'Role-play partner',
+  coach_summary: 'Session summary',
+  app: 'App',
 }
 
 export type AgentState = { status: 'idle' | 'running' | 'done' | 'blocked'; summary: string; tokens: number }
@@ -106,3 +111,37 @@ export type Usage = {
   overall: Tokens & { estimated_cost_usd: number }
   session_token_cap: number
 }
+
+// ---- Practice room ----
+
+export type Difficulty = 'friendly' | 'neutral' | 'skeptical'
+
+export type ScenarioCard = { id: string; title: string; description: string; setting: string; character: string }
+
+export type CoachCard = {
+  scores: Record<string, number>
+  strength: string
+  tip: string
+  try_saying: string
+  legal_fact_used: string | null
+  skills: string[]
+  legal_fact: { id: string; text: string; source: string } | null
+  guards: { guard: string; detail: string }[]
+}
+
+export type PracticeSummary = {
+  summary: string
+  best_quote: string
+  practice_next: string
+  score_first: number
+  score_last: number
+  max_score: number
+  turns: number
+}
+
+export type PracticeFinal =
+  | { type: 'turn' | 'ended'; turn_number: number; max_turns: number; partner: { name: string; line: string }; coach: CoachCard; ended: boolean; summary?: PracticeSummary }
+  | { type: 'ended'; summary: PracticeSummary | null; reply?: string }
+  | { type: 'paused'; reply: string }
+  | { type: 'safety'; status: string; crisis_type: string | null; message: string; resources: Resource[] }
+  | { type: 'limit' | 'error'; reply: string }

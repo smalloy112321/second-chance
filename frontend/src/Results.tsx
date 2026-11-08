@@ -67,10 +67,12 @@ export default function Results({
   result,
   mode,
   db,
+  onPractice,
 }: {
   result: ResultPayload
   mode: Mode
   db: Record<string, Resource>
+  onPractice?: () => void
 }) {
   const lookup = (id: string | null) => (id ? result.resources[id] ?? db[id] : undefined)
   const caseworker = mode === 'caseworker'
@@ -79,11 +81,18 @@ export default function Results({
     <section className="results" aria-labelledby="results-title">
       <div className="results-head">
         <h2 id="results-title">{caseworker ? 'Client results' : 'Your results'}</h2>
-        {caseworker && (
-          <button type="button" className="btn btn-quiet no-print" onClick={() => window.print()}>
-            Print plan
-          </button>
-        )}
+        <div className="btn-row no-print">
+          {onPractice && (
+            <button type="button" className="btn" onClick={onPractice}>
+              Practice a conversation
+            </button>
+          )}
+          {caseworker && (
+            <button type="button" className="btn btn-quiet" onClick={() => window.print()}>
+              Print plan
+            </button>
+          )}
+        </div>
       </div>
 
       <article className="card slate-card">

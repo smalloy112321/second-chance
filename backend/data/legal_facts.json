@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ct_ban_the_box",
+    "plain": "In Connecticut, most employers can't ask about criminal history on the first job application. They may still ask later, like in an interview.",
+    "caseworker": "CGS §31-51i (as amended by P.A. 16-83): most employers may not inquire about criminal history on an initial employment application, with exceptions where required by law or a fidelity bond. Inquiry may occur later in the process.",
+    "source": "https://www.cga.ct.gov/current/pub/chap_557.htm#sec_31-51i",
+    "verify_before_use": true
+  },
+  {
+    "id": "ct_erased_records_employment",
+    "plain": "If your record has been erased, an employer can't make you tell them about it, and can't turn you down just because of an erased record. Confirm your record is erased first.",
+    "caseworker": "CGS §31-51i: employers may not require disclosure of erased criminal history record information or deny employment solely because of it; a person whose record was erased is deemed never to have been arrested for those proceedings and may so swear under oath (see also §54-142a).",
+    "source": "https://www.cga.ct.gov/current/pub/chap_557.htm#sec_31-51i",
+    "verify_before_use": true
+  }
+]

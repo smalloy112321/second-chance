@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, UsageLimitExceeded, UsageLimits
 
 import orchestrator
+from agents import practice
 import resources
 import sessions
 import usage
@@ -38,6 +39,24 @@ class ChatRequest(BaseModel):
     session_id: str = SessionId
     mode: Mode
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
+
+
+class PracticeStartRequest(BaseModel):
+    session_id: str = SessionId
+    mode: Mode = "self_serve"
+    scenario_id: str
+    difficulty: Literal["friendly", "neutral", "skeptical"] = "friendly"
+
+
+class PracticeTurnRequest(BaseModel):
+    session_id: str = SessionId
+    mode: Mode = "self_serve"
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class PracticeEndRequest(BaseModel):
+    session_id: str = SessionId
+    mode: Mode = "self_serve"
 
 
 class HelloRequest(BaseModel):
@@ -119,10 +138,8 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, default=str)}\n\n"
 
 
-@app.post("/api/chat/stream")
-async def chat_stream(req: ChatRequest) -> StreamingResponse:
-    """Server-sent events: agent_started, agent_done, tool_called, verifier_issue,
-    safety_block, error, and finally final."""
+def _stream(label: str, work) -> StreamingResponse:
+    """Run work(emit) and stream its events, then the final payload, as server-sent events."""
     queue: asyncio.Queue = asyncio.Queue()
 
     async def emit(event: str, data: dict) -> None:
@@ -130,10 +147,10 @@ async def chat_stream(req: ChatRequest) -> StreamingResponse:
 
     async def runner() -> None:
         try:
-            final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit)
+            final = await work(emit)
             await queue.put(("final", final))
         except Exception as exc:
-            print(f"[chat/stream] {type(exc).__name__}: {str(exc)[:300]}")
+            print(f"[{label}] {type(exc).__name__}: {str(exc)[:300]}")
             await queue.put(("error", {"message": GENERIC_ERROR, "kind": "server"}))
         finally:
             await queue.put(None)
@@ -152,6 +169,61 @@ async def chat_stream(req: ChatRequest) -> StreamingResponse:
         events(), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(req: ChatRequest) -> StreamingResponse:
+    """Server-sent events: agent_started, agent_done, tool_called, verifier_issue,
+    safety_block, error, and finally final."""
+    return _stream("chat/stream", lambda emit: orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit))
+
+
+# ---- Practice room -----------------------------------------------------------------------
+
+
+@app.get("/api/practice/scenarios")
+def practice_scenarios() -> dict:
+    return {
+        "scenarios": [
+            {k: sc[k] for k in ("id", "title", "description", "setting")} | {"character": practice.character_name(sc)}
+            for sc in practice.scenarios().values()
+        ],
+        "difficulties": list(practice.DIFFICULTIES),
+        "max_turns": practice.MAX_TURNS,
+    }
+
+
+@app.post("/api/practice/start")
+def practice_start(req: PracticeStartRequest) -> dict:
+    if req.scenario_id not in practice.scenarios():
+        raise HTTPException(status_code=404, detail="Unknown scenario.")
+    return orchestrator.start_practice(req.session_id, req.mode, req.scenario_id, req.difficulty)
+
+
+@app.post("/api/practice/turn")
+async def practice_turn(req: PracticeTurnRequest) -> dict:
+    """Non-streaming version (for testing)."""
+    events: list[dict] = []
+
+    async def collect(event: str, data: dict) -> None:
+        events.append({"event": event, "data": data})
+
+    try:
+        final = await orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=collect)
+    except Exception as exc:
+        print(f"[practice/turn] {type(exc).__name__}: {str(exc)[:300]}")
+        raise HTTPException(status_code=502, detail=GENERIC_ERROR)
+    return {**final, "events": events}
+
+
+@app.post("/api/practice/turn/stream")
+async def practice_turn_stream(req: PracticeTurnRequest) -> StreamingResponse:
+    return _stream("practice/stream", lambda emit: orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=emit))
+
+
+@app.post("/api/practice/end/stream")
+async def practice_end_stream(req: PracticeEndRequest) -> StreamingResponse:
+    return _stream("practice/end", lambda emit: orchestrator.end_practice(req.session_id, req.mode, emit=emit))
 
 
 @app.delete("/api/session/{session_id}")

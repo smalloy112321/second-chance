@@ -1,4 +1,4 @@
-import { AGENTS, AGENT_LABEL, type ActivityItem, type AgentName, type AgentState } from './types'
+import { AGENT_LABEL, type ActivityItem, type AgentState } from './types'
 
 const STATUS_TEXT: Record<AgentState['status'], string> = {
   idle: 'Waiting',
@@ -8,12 +8,14 @@ const STATUS_TEXT: Record<AgentState['status'], string> = {
 }
 
 export default function AgentPanel({
+  names,
   agents,
   activity,
   open,
   onToggle,
 }: {
-  agents: Record<AgentName, AgentState>
+  names: readonly string[]
+  agents: Record<string, AgentState>
   activity: ActivityItem[]
   open: boolean
   onToggle: () => void
@@ -27,8 +29,8 @@ export default function AgentPanel({
       {open && (
         <div className="panel-body">
           <ol className="agent-list">
-            {AGENTS.map((name, i) => {
-              const a = agents[name]
+            {names.map((name, i) => {
+              const a = agents[name] ?? { status: 'idle', summary: '', tokens: 0 }
               return (
                 <li key={name} className={`agent agent-${a.status}`}>
                   <span className="agent-dot" aria-hidden="true">{i + 1}</span>
@@ -48,7 +50,7 @@ export default function AgentPanel({
             {activity.length === 0 && <li className="log-empty">Agent steps will show here as they run.</li>}
             {activity.slice(-40).map((item) => (
               <li key={item.id} className={`log-${item.kind}`}>
-                <span className="log-agent">{AGENT_LABEL[item.agent as AgentName] ?? item.agent}</span> {item.text}
+                <span className="log-agent">{AGENT_LABEL[item.agent] ?? item.agent}</span> {item.text}
               </li>
             ))}
           </ul>

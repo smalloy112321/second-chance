@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import AgentPanel from './AgentPanel'
+import PracticeRoom from './PracticeRoom'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import {
@@ -9,6 +10,7 @@ import {
   type AgentName,
   type AgentState,
   type ChatMessage,
+  type Difficulty,
   type FinalPayload,
   type Mode,
   type Resource,
@@ -38,19 +40,44 @@ function storedMode(): Mode | null {
   return m === 'self_serve' || m === 'caseworker' ? m : null
 }
 
-export default function App() {
-  const [mode, setMode] = useState<Mode | null>(storedMode)
+type Launch = { view: 'plan' | 'practice'; sessionId?: string; scenario?: string; difficulty?: Difficulty }
 
-  const choose = (m: Mode) => {
+/** A caseworker's practice link: /?practice=<scenario>&difficulty=<d>&sid=<new session id> */
+function launchFromUrl(): Launch | null {
+  const q = new URLSearchParams(location.search)
+  const scenario = q.get('practice')
+  if (!scenario) return null
+  const d = q.get('difficulty')
+  const sid = q.get('sid') ?? ''
+  return {
+    view: 'practice',
+    scenario,
+    difficulty: d === 'neutral' || d === 'skeptical' ? d : 'friendly',
+    sessionId: /^[A-Za-z0-9_-]{8,64}$/.test(sid) ? sid : undefined,
+  }
+}
+
+export default function App() {
+  const [linkLaunch] = useState(launchFromUrl)
+  const [mode, setMode] = useState<Mode | null>(linkLaunch ? 'self_serve' : storedMode)
+  const [launch, setLaunch] = useState<Launch>(linkLaunch ?? { view: 'plan' })
+
+  const choose = (m: Mode, view: Launch['view'] = 'plan') => {
     sessionStorage.setItem(MODE_KEY, m)
+    setLaunch({ view })
     setMode(m)
   }
   const leave = () => {
     sessionStorage.removeItem(MODE_KEY)
+    if (location.search) history.replaceState(null, '', location.pathname)
     setMode(null)
   }
 
-  return mode ? <Workspace key={mode} mode={mode} onChangeMode={leave} /> : <Landing onChoose={choose} />
+  return mode ? (
+    <Workspace key={`${mode}-${launch.view}`} mode={mode} launch={launch} onChangeMode={leave} />
+  ) : (
+    <Landing onChoose={choose} />
+  )
 }
 
 function Shell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
@@ -71,7 +98,7 @@ function Shell({ children, footer }: { children: React.ReactNode; footer?: React
   )
 }
 
-function Landing({ onChoose }: { onChoose: (m: Mode) => void }) {
+function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => void }) {
   return (
     <Shell>
       <section className="landing" aria-labelledby="landing-title">
@@ -91,14 +118,19 @@ function Landing({ onChoose }: { onChoose: (m: Mode) => void }) {
             <span className="choice-sub">Paste case notes and get a plan you can print.</span>
           </button>
         </div>
+        <button type="button" className="just-practice" onClick={() => onChoose('self_serve', 'practice')}>
+          <span className="just-practice-title">Just practice a conversation</span>
+          <span className="choice-sub">Rehearse a job interview, an apartment showing, or a meeting with a social worker.</span>
+        </button>
       </section>
     </Shell>
   )
 }
 
-function Workspace({ mode, onChangeMode }: { mode: Mode; onChangeMode: () => void }) {
+function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch; onChangeMode: () => void }) {
   const caseworker = mode === 'caseworker'
-  const [sessionId, setSessionId] = useState(newSessionId)
+  const [sessionId, setSessionId] = useState(() => launch.sessionId ?? newSessionId())
+  const [view, setView] = useState<Launch['view']>(launch.view)
   const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', text: GREETING[mode] }])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
@@ -215,9 +247,11 @@ function Workspace({ mode, onChangeMode }: { mode: Mode; onChangeMode: () => voi
       setMessages((m) => [...m, { role: 'error', text: msg }])
     } finally {
       setBusy(false)
-      void fetchUsage(sessionId).then((u) => u && setUsage(u))
+      refreshUsage()
     }
   }
+
+  const refreshUsage = () => void fetchUsage(sessionId).then((u) => u && setUsage(u))
 
   const clearAll = useCallback(async () => {
     await clearSession(sessionId)
@@ -257,6 +291,17 @@ function Workspace({ mode, onChangeMode }: { mode: Mode; onChangeMode: () => voi
         </button>
       </div>
 
+      {view === 'practice' ? (
+        <PracticeRoom
+          key={sessionId}
+          sessionId={sessionId}
+          mode={mode}
+          initialScenario={launch.scenario}
+          initialDifficulty={launch.difficulty}
+          onBack={() => setView('plan')}
+          onTurnDone={refreshUsage}
+        />
+      ) : (
       <div className={`workspace ${caseworker ? 'is-caseworker' : 'is-self'}`}>
         <div className="workspace-main">
           <section className="chat no-print" aria-label="Conversation">
@@ -320,15 +365,22 @@ function Workspace({ mode, onChangeMode }: { mode: Mode; onChangeMode: () => voi
 
           {result && (
             <div ref={resultsRef}>
-              <Results result={result} mode={mode} db={db} />
+              <Results result={result} mode={mode} db={db} onPractice={() => setView('practice')} />
             </div>
           )}
         </div>
 
         <div className="no-print">
-          <AgentPanel agents={agents} activity={activity} open={panelOpen} onToggle={() => setPanelOpen((o) => !o)} />
+          <AgentPanel
+            names={AGENTS}
+            agents={agents}
+            activity={activity}
+            open={panelOpen}
+            onToggle={() => setPanelOpen((o) => !o)}
+          />
         </div>
       </div>
+      )}
     </Shell>
   )
 }

@@ -1,13 +1,15 @@
-import type { Mode, Resource, Usage } from './types'
+import type { Difficulty, Mode, Resource, ScenarioCard, Usage } from './types'
 
 export type StreamEvent = { event: string; data: any }
 
 /** POST /api/chat/stream and call onEvent for each server-sent event. */
-export async function streamChat(
-  body: { session_id: string; mode: Mode; message: string },
-  onEvent: (e: StreamEvent) => void,
-): Promise<void> {
-  const res = await fetch('/api/chat/stream', {
+export function streamChat(body: { session_id: string; mode: Mode; message: string }, onEvent: (e: StreamEvent) => void) {
+  return streamPost('/api/chat/stream', body, onEvent)
+}
+
+/** POST to any streaming endpoint and call onEvent for each server-sent event. */
+export async function streamPost(path: string, body: object, onEvent: (e: StreamEvent) => void): Promise<void> {
+  const res = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -57,4 +59,19 @@ export async function fetchResources(): Promise<Record<string, Resource>> {
 export function newSessionId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
   return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+}
+
+export async function fetchScenarios(): Promise<ScenarioCard[]> {
+  const res = await fetch('/api/practice/scenarios').catch(() => null)
+  return res && res.ok ? (await res.json()).scenarios : []
+}
+
+export async function startPractice(body: { session_id: string; mode: Mode; scenario_id: string; difficulty: Difficulty }) {
+  const res = await fetch('/api/practice/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error('Could not start practice. Please try again.')
+  return res.json()
 }

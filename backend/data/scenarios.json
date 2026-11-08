@@ -1,0 +1,50 @@
+[
+  {
+    "id": "job_interview",
+    "title": "Job interview",
+    "description": "Practice answering questions about your background in a job interview.",
+    "character": "Dana, the hiring manager at a regional grocery chain",
+    "setting": "A second-round in-person interview for a stock and customer service position. It's going well so far.",
+    "opening_line": "Thanks for coming back in. I've enjoyed talking with you. Before we wrap up, I like to make sure there are no surprises. Is there anything in your background we should talk about?",
+    "key_question": "Is there anything in your background we should talk about?",
+    "follow_ups": {
+      "friendly": "I appreciate you telling me. What would you want me to know about you now?",
+      "neutral": "Thank you. Can you tell me what you've been doing since then?",
+      "skeptical": "I appreciate the honesty. How do I know it won't affect your work here?"
+    },
+    "uses_disclosure_guidance": true,
+    "legal_fact_ids": ["ct_ban_the_box", "ct_erased_records_employment"]
+  },
+  {
+    "id": "landlord",
+    "title": "Apartment application",
+    "description": "Practice talking with a landlord or property manager about a background check.",
+    "character": "Mr. Reyes, a property manager for a mid-size apartment building",
+    "setting": "A showing for a 2-bedroom apartment. She has submitted an application.",
+    "opening_line": "So you liked the unit? Good. Our application includes a background check, so I like to ask up front. Is there anything that's going to come up that you want to explain?",
+    "key_question": "Is there anything that's going to come up on your background check?",
+    "follow_ups": {
+      "friendly": "Okay, thanks for being straight with me. What's your situation like now?",
+      "neutral": "Understood. Do you have proof of income and any references?",
+      "skeptical": "I have to think about the other tenants. Why should I take a chance?"
+    },
+    "uses_disclosure_guidance": false,
+    "legal_fact_ids": []
+  },
+  {
+    "id": "reunification",
+    "title": "Reunification meeting",
+    "description": "Practice a meeting with a social worker about spending more time with your children.",
+    "character": "Ms. Carter, a DCF social worker assigned to the family's case",
+    "setting": "A scheduled check-in meeting about expanding visits with her children.",
+    "opening_line": "Thanks for meeting with me today. I want to hear how things are going for you since you've been home, and talk about next steps for visits with the kids.",
+    "key_question": "What have you put in place to make sure the kids will be safe and stable with you?",
+    "follow_ups": {
+      "friendly": "That sounds like real progress. What support do you have if things get hard?",
+      "neutral": "Can you walk me through a typical week right now?",
+      "skeptical": "I hear you, but I need to see consistency. What's different this time?"
+    },
+    "uses_disclosure_guidance": false,
+    "legal_fact_ids": []
+  }
+]

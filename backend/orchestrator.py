@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import resources
 import sessions
-from agents import intake, planner, safety_guard, screener, verifier
+from agents import intake, planner, practice, safety_guard, screener, verifier
 from agents.runtime import LIMIT_MESSAGE, BudgetExceeded, Ctx, Emit, _no_emit
 
 # Next steps the UI can show (wording and forms from clean_slate_rules_spec.md section 5).
@@ -100,3 +100,62 @@ async def handle_message(session_id: str, mode: str, message: str, emit: Emit = 
             payload = {"type": "limit", "reply": LIMIT_MESSAGE}
             await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
             return payload
+
+
+# ---- Practice room (Step 4) ---------------------------------------------------------------
+
+
+def start_practice(session_id: str, mode: str, scenario_id: str, difficulty: str) -> dict:
+    """Begin a practice conversation. The opening line comes straight from scenarios.json."""
+    scenario = practice.scenarios()[scenario_id]
+    s = sessions.get_or_create(session_id, mode)
+    s.practice = practice.PracticeState(
+        scenario_id=scenario_id, difficulty=difficulty, last_partner_line=scenario["opening_line"],
+    )
+    return {
+        "type": "started",
+        "scenario": {k: scenario[k] for k in ("id", "title", "description", "setting")},
+        "difficulty": difficulty,
+        "partner": {"name": practice.character_name(scenario), "role": scenario["character"], "line": scenario["opening_line"]},
+        "max_turns": practice.MAX_TURNS,
+        "disclosure_guidance": practice.practice_context(s)["disclosure_guidance"],
+    }
+
+
+async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None) -> dict:
+    s = sessions.get_or_create(session_id, mode)
+    if s.practice is None:
+        return {"type": "error", "reply": "Choose a scenario to start practicing."}
+    if s.practice.ended:
+        return {"type": "ended", "summary": s.practice.summary}
+    if practice.is_pause(message):  # a bare "pause"/"stop"/"help": nothing to screen, no AI call
+        return dict(practice.PAUSED)
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    async with s.lock:
+        try:
+            safety = await safety_guard.run(ctx, message)
+            if safety.status != "ok":
+                shown = safety_guard.user_message(safety)
+                payload = {"type": "safety", "status": safety.status, "crisis_type": safety.crisis_type, **shown}
+                await emit("safety_block", payload)
+                return payload
+            return await practice.take_turn(ctx, s, message)
+        except BudgetExceeded:
+            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
+            return {"type": "limit", "reply": LIMIT_MESSAGE}
+
+
+async def end_practice(session_id: str, mode: str, emit: Emit = _no_emit, model=None) -> dict:
+    s = sessions.get_or_create(session_id, mode)
+    st = s.practice
+    if st is None or not st.turns:
+        return {"type": "ended", "summary": None, "reply": "No answers yet, so there's nothing to score."}
+    if st.ended and st.summary:
+        return {"type": "ended", "summary": st.summary}
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    async with s.lock:
+        try:
+            return {"type": "ended", "summary": await practice.run_summary(ctx, st)}
+        except BudgetExceeded:
+            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
+            return {"type": "limit", "reply": LIMIT_MESSAGE}

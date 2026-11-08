@@ -16,7 +16,12 @@ from functools import lru_cache
 
 from agents.config import PROMPTS_DIR
 
-PLACEHOLDERS = ("{message}", "{profile_json}", "{rules_json}", "{plan_json}", "{screener_json}", "{resource_ids}")
+PLACEHOLDERS = (
+    "{message}", "{profile_json}", "{rules_json}", "{plan_json}", "{screener_json}", "{resource_ids}",
+    # Practice room (Step 4)
+    "{scenario_json}", "{difficulty}", "{context_json}", "{max_turns}", "{last_partner_line}",
+    "{disclosure_guidance}", "{legal_facts}", "{turns_json}", "{mode}",
+)
 
 
 @lru_cache(maxsize=None)
@@ -30,7 +35,8 @@ def shared(mode: str) -> str:
 
 def escape_tags(text: str) -> str:
     """Stop user text from closing the <user_input>/<case_notes> tags it is wrapped in."""
-    for tag in ("user_input", "case_notes", "profile", "plan", "screener", "rules_result"):
+    for tag in ("user_input", "case_notes", "profile", "plan", "screener", "rules_result",
+                "scenario", "context", "question", "turns"):
         text = text.replace(f"</{tag}>", f"&lt;/{tag}&gt;").replace(f"<{tag}>", f"&lt;{tag}&gt;")
     return text
 
@@ -51,6 +57,7 @@ def split(name: str, mode: str, reference: str = "", **values: str) -> tuple[str
     head, tail = body[:cut], body[cut:]
     for key, val in values.items():
         tail = tail.replace("{" + key + "}", val)
+    tail = tail.replace("{mode}", mode)  # e.g. coach_summary.md uses {mode} in its own text
     parts = [shared(mode)]
     if reference:
         parts.append(reference)

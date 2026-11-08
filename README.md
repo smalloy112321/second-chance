@@ -2,7 +2,7 @@
 
 A web app that helps formerly incarcerated women in Connecticut, on their own or with a caseworker, check whether their record may have been erased under CT's Clean Slate law, build a 30-day reentry plan, and practice hard conversations.
 
-> **Status:** the five agents, the Clean Slate rules engine, and the web app work end to end. Conversation practice is not built yet.
+> **Status:** the planner (five agents + Clean Slate rules engine) and the Practice Room work end to end.
 
 ## Run it
 
@@ -45,6 +45,16 @@ Pick **I'm helping a client** and paste one of these notes (or use **I'm plannin
 
 A full run takes about a minute and costs well under one cent. Each agent lights up in the **Agent activity** panel as it runs.
 
+## Practice Room
+
+Rehearse a hard conversation with a role-play partner while a coach scores each answer on five skills (honest, brief, ownership, looking forward, calm) and suggests a "Try saying…" rewrite.
+
+- **Get there:** "Just practice a conversation" on the landing page, or "Practice a conversation" on the results screen (uses that session's Clean Slate result). Caseworkers can copy a client link with a scenario preselected.
+- **Scenarios:** job interview (Dana), apartment application (Mr. Reyes), reunification meeting (Ms. Carter), each friendly / neutral / skeptical. Up to 5 answers, then a summary.
+- **Privacy:** the role-play partner and coach only see her first name, job goal, town, whether she has kids, the mode, and the disclosure guidance. Never conviction details.
+- **Guards in code:** a suggested answer that denies having a record is replaced unless her record is likely erased (job interview only); legal facts are limited to `backend/data/legal_facts.json` and shown from that file; scores are clamped to 1–3; the summary's quote must be words she said.
+- Type "pause" or use **Pause**; the 🎤 button (shown when the browser supports speech-to-text) fills in her spoken answer.
+
 ## How it works
 
 `safety_guard → intake (until complete) → screener → planner → verifier`. Every message goes through the safety guard first. If the verifier rejects the plan, the planner revises once; if it is still rejected, the plan is shown with a "Needs human review" banner.
@@ -59,7 +69,8 @@ A full run takes about a minute and costs well under one cent. Each agent lights
 | `backend/data/ct_resources.json` | 40 checked Connecticut resources; contact details are shown from here, never written by the AI |
 | `backend/data/prices.json` | gpt-6-luna prices used for the cost estimate (MGT 409 Lecture 11) |
 | `backend/usage.py`, `backend/audit.py` | Token log (`output/usage_log.json`, 150,000-token cap per session) and audit trail (`output/audit_trail.json`); rows are only ever added |
-| `backend/tests/` | Rules engine (14 spec cases + 1), safety guard, verifier code checks, screener guards |
+| `backend/agents/practice.py` | Practice Room: role-play, coach, and summary agents plus their code guards; scenarios in `backend/data/scenarios.json` |
+| `backend/tests/` | Rules engine (14 spec cases + 1), safety guard, verifier code checks, screener guards, intake history, Practice Room guards and privacy, prompt rendering |
 | `frontend/` | React + Vite + TypeScript source; `frontend/dist` is the built app |
 
 ## Running the tests
