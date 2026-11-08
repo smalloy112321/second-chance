@@ -1,33 +1,12 @@
+import { convictedLine, erasureLine, overallBadge, statusLabel, waitingNote } from './resultsDisplay'
 import type { Mode, Resource, ResultPayload } from './types'
 
-type Tone = 'green' | 'blue' | 'gray' | 'amber' | 'neutral'
-
-const STATUS: Record<string, { label: string; tone: Tone }> = {
-  likely_erased: { label: 'Likely erased', tone: 'green' },
-  likely_erased_cannabis: { label: 'Likely erased (cannabis law)', tone: 'green' },
-  partly_erased: { label: 'Partly erased', tone: 'green' },
-  eligible_on: { label: 'Expected on a date', tone: 'blue' },
-  not_yet_supervision: { label: 'Waiting on supervision', tone: 'blue' },
-  not_yet_sentence: { label: 'Waiting on sentence', tone: 'blue' },
-  petition: { label: 'Court petition possible', tone: 'gray' },
-  petition_pre_2000: { label: 'Court petition possible', tone: 'gray' },
-  petition_cannabis: { label: 'Court petition possible', tone: 'gray' },
-  needs_review: { label: 'Needs review', tone: 'amber' },
-  not_eligible: { label: 'Not covered', tone: 'neutral' },
-}
-
 function Badge({ status }: { status: string }) {
-  const s = STATUS[status] ?? { label: status, tone: 'neutral' as Tone }
+  const s = statusLabel(status)
   return <span className={`badge badge-${s.tone}`}>{s.label}</span>
 }
 
-function fmtDate(iso: string | null) {
-  if (!iso) return null
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-export function ResourceCard({ r }: { r: Resource }) {
+export function ResourceCard({ r, hideNotes = false }: { r: Resource; hideNotes?: boolean }) {
   return (
     <div className="resource">
       <div className="resource-name">{r.name}</div>
@@ -51,7 +30,7 @@ export function ResourceCard({ r }: { r: Resource }) {
           </li>
         )}
       </ul>
-      {r.notes && <p className="resource-notes">{r.notes}</p>}
+      {r.notes && !hideNotes && <p className="resource-notes">{r.notes}</p>}
       <p className="resource-checked">Checked {r.verified_on}</p>
     </div>
   )
@@ -83,6 +62,7 @@ export default function Results({
 }) {
   const lookup = (id: string | null) => (id ? result.resources[id] ?? db[id] : undefined)
   const caseworker = mode === 'caseworker'
+  const simple = show === 'slate' // self-serve results step: convictions first, no summary on top
 
   return (
     <section className="results" aria-labelledby="results-title">
@@ -105,26 +85,36 @@ export default function Results({
       {show !== 'plan' && (
         <>
       <article className="card slate-card">
-        <div className="slate-top">
-          <h3>Clean Slate check</h3>
-          <Badge status={result.rules.overall} />
-        </div>
-        <p className="headline">{result.screener.headline}</p>
-        <p className="explanation">{result.screener.explanation}</p>
+        {simple ? null : (
+          <>
+            <div className="slate-top">
+              <h3>Clean Slate check</h3>
+              <Badge status={overallBadge(result.rules)} />
+            </div>
+            <p className="headline">{result.screener.headline}</p>
+            <p className="explanation">{result.screener.explanation}</p>
+          </>
+        )}
 
         <ul className="conviction-list">
-          {result.rules.convictions.map((c) => (
-            <li key={c.id}>
-              <div className="conviction-row">
-                <span className="conviction-desc">{c.description}</span>
-                <Badge status={c.status} />
-              </div>
-              <div className="conviction-meta">
-                {c.eligible_on && <span>Date: {fmtDate(c.eligible_on)}</span>}
-                {caseworker && <span className="code">{c.reason_code}</span>}
-              </div>
-            </li>
-          ))}
+          {result.rules.convictions.map((c) => {
+            const later = erasureLine(c)
+            const note = waitingNote(c)
+            return (
+              <li key={c.id}>
+                <div className="conviction-row">
+                  <span className="conviction-desc">{c.description}</span>
+                  <Badge status={c.status} />
+                </div>
+                <div className="conviction-meta">
+                  <span>{convictedLine(c)}</span>
+                  {later && <span>{later}</span>}
+                  {caseworker && <span className="code">{c.reason_code}</span>}
+                </div>
+                {note && <p className="conviction-note">{note}</p>}
+              </li>
+            )
+          })}
         </ul>
 
         {caseworker && (
@@ -136,16 +126,29 @@ export default function Results({
 
         {result.next_steps.length > 0 && (
           <>
-            <h4>Next steps for the record</h4>
+            <h3 className="steps-title">{caseworker ? 'Recommended next steps' : 'Here are your recommended next steps:'}</h3>
             <ol className="next-steps">
               {result.next_steps.map((s) => (
                 <li key={s.code}>
-                  <strong>{s.title}</strong>
-                  <p>{s.detail}</p>
+                  <strong className="step-title">{s.title}</strong>
+                  <p className="step-detail">{s.detail}</p>
+                  {s.how && s.how.length > 0 && (
+                    <ol className="step-how">
+                      {s.how.map((h) => (
+                        <li key={h}>{h}</li>
+                      ))}
+                    </ol>
+                  )}
                   {s.links && s.links.length > 0 && (
                     <div className="step-links">
                       {s.links.map((l) => (
-                        <a key={l.url} className="step-link" href={l.url} target="_blank" rel="noreferrer">
+                        <a
+                          key={l.url}
+                          className={l.primary ? 'btn step-main' : 'step-link'}
+                          href={l.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           {l.label} <span aria-hidden="true">↗</span>
                         </a>
                       ))}
@@ -153,7 +156,7 @@ export default function Results({
                   )}
                   {s.resource_ids.map((id) => {
                     const r = lookup(id)
-                    return r ? <ResourceCard key={id} r={r} /> : null
+                    return r ? <ResourceCard key={id} r={r} hideNotes /> : null
                   })}
                 </li>
               ))}

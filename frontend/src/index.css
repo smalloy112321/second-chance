@@ -209,6 +209,7 @@ main { flex: 1; }
 .conviction-list { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.5rem; }
 .conviction-list li { background: var(--bg); border-radius: 0.75rem; padding: 0.6rem 0.8rem; }
 .conviction-row { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.conviction-row .badge { white-space: normal; text-align: center; max-width: 100%; }
 .conviction-desc { font-weight: 600; }
 .conviction-meta { display: flex; gap: 1rem; font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.2rem; flex-wrap: wrap; }
 .code { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; background: var(--tint); padding: 0.05rem 0.4rem; border-radius: 0.3rem; }
@@ -447,3 +448,21 @@ main { flex: 1; }
 .step-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.2rem 0 0.6rem; }
 .step-link { display: inline-block; background: var(--tint); color: var(--navy); border: 1.5px solid var(--tint-strong); border-radius: 0.6rem; padding: 0.45rem 0.8rem; font-weight: 600; font-size: 0.9rem; text-decoration: none; }
 .step-link:hover { background: var(--tint-strong); }
+
+/* Recommended next steps: one clear action per step */
+.steps-title { font-family: var(--font-display); font-size: 1.15rem; color: var(--navy); margin: 1.25rem 0 0.6rem; }
+.next-steps > li { margin-bottom: 1.1rem; padding-left: 0.2rem; }
+.next-steps > li::marker { font-weight: 700; color: var(--accent); }
+.step-title { display: block; font-size: 1.02rem; color: var(--navy); }
+.step-detail { margin: 0.2rem 0 0.4rem; color: var(--ink-soft); font-size: 0.92rem; }
+.step-how { margin: 0 0 0.6rem; padding-left: 1.2rem; font-size: 0.92rem; color: var(--navy); display: grid; gap: 0.2rem; overflow-wrap: anywhere; }
+.step-how li::marker { color: var(--ink-soft); }
+.step-main { display: inline-block; text-decoration: none; }
+.conviction-note { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--navy); }
+.examples { max-width: 44rem; margin: 0 auto; }
+.examples h1 { margin-bottom: 0.4rem; }
+.examples-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+.example { min-width: 0; }
+.example { border-top: 2px solid var(--line); padding-top: 1.25rem; }
+.example-answers { margin: 0.3rem 0 0.6rem; color: var(--navy); font-size: 0.95rem; }
+.example .results { margin-top: 0.5rem; }

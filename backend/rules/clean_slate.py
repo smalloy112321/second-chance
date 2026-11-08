@@ -152,6 +152,7 @@ def _row(c: Conviction, status: str, reason_code: str, source: str = SOURCE_ELIG
     return {
         "id": c.id,
         "description": c.description,
+        "conviction_date": c.conviction_date.isoformat() if c.conviction_date else None,  # for display only
         "status": status,
         "wait_years": wait_years,
         "eligible_on": eligible_on.isoformat() if eligible_on else None,

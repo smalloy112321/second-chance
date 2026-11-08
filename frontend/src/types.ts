@@ -26,6 +26,7 @@ export type Resource = {
 export type RulesConviction = {
   id: string
   description: string
+  conviction_date?: string | null
   status: string
   wait_years: number | null
   eligible_on: string | null
@@ -62,7 +63,14 @@ export type Plan = { summary: string; weeks: { week: number; focus: string; step
 
 export type VerifierIssue = { step_id: string | null; check: string; problem: string; fix: string; source: string }
 
-export type NextStep = { code: string; title: string; detail: string; resource_ids: string[]; links?: { label: string; url: string }[] }
+export type NextStep = {
+  code: string
+  title: string
+  detail: string
+  how?: string[]
+  resource_ids: string[]
+  links?: { label: string; url: string; primary?: boolean }[]
+}
 
 export type ResultPayload = {
   type: 'result'

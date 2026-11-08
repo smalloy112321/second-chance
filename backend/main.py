@@ -241,6 +241,14 @@ def session_usage(session_id: str) -> dict:
     return usage.session_summary(session_id)
 
 
+@app.get("/api/examples")
+def examples() -> dict:
+    """Sample results for the /?examples page (report screenshots). Rules engine only, no AI."""
+    from examples import example_results
+
+    return {"examples": example_results()}
+
+
 @app.get("/api/resources")
 def all_resources() -> dict:
     """The checked resource list, keyed by id; the frontend shows contact details from here."""

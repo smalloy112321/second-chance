@@ -57,6 +57,10 @@ Rehearse a hard conversation with a role-play partner while a coach scores each 
 - **Guards in code:** a suggested answer that denies having a record is replaced unless her record is likely erased (job interview only); legal facts are limited to `backend/data/legal_facts.json` and shown from that file; scores are clamped to 1–3; the summary's quote must be words she said.
 - Type "pause" or use **Pause**; the 🎤 button (shown when the browser supports speech-to-text) fills in her spoken answer.
 
+## Example results (for screenshots)
+
+Open <http://127.0.0.1:8000/?examples> (or the live link with `/?examples`) to see what the "Your results" step shows for eight sample answers: likely erased, partly erased, expected on a date, waiting on probation, not covered, needs review, court petition, and cannabis law. It uses only the rules engine and the fixed next steps, so it costs nothing and matches the app exactly.
+
 ## How it works
 
 `safety_guard → intake (until complete) → screener → planner → verifier`. Every message goes through the safety guard first. If the verifier rejects the plan, the planner revises once; if it is still rejected, the plan is shown with a "Needs human review" banner.
@@ -88,6 +92,7 @@ The self-serve questionnaire has its own small tests (plain Node, no extra packa
 ```bash
 node frontend/src/qaForm.test.ts
 node frontend/src/qaRules.test.ts
+node frontend/src/resultsDisplay.test.ts
 ```
 
 ## Changing the frontend (developers only)

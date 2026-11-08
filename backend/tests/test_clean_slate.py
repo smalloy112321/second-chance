@@ -173,3 +173,10 @@ def test_excluded_statute_stalking_not_eligible():
     c = by_id(r)["c1"]
     assert c["status"] == "not_eligible"
     assert c["reason_code"] == "EXCLUDED_STATUTE"
+
+
+def test_rows_include_conviction_date_for_display():
+    r = evaluate(person(conv(convicted=date(2012, 3, 1)), conv("c2", convicted=None, offense=None)))
+    rows = by_id(r)
+    assert rows["c1"]["conviction_date"] == "2012-03-01"
+    assert rows["c2"]["conviction_date"] is None

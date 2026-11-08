@@ -22,37 +22,67 @@ PETITION_FORM = "https://www.jud.ct.gov/webforms/forms/CR202.pdf"
 
 NEXT_STEPS = {
     "confirm_record_spbi": {
-        "title": "Get your official record from State Police",
-        "detail": "This is the only way to know for sure. Request a copy of your Connecticut criminal history from the State Police using form DPS-0846-C. There is a fee; the form lists the cost.",
+        "title": "Get your official record from the State Police",
+        "detail": "This is the only way to know for sure what is on your record.",
+        "how": [
+            "Download form DPS-0846-C (button below) and fill it out.",
+            "Mail it to the State Police with the fee. The address and cost are on the form.",
+            "Questions? Call the State Police Bureau of Identification at (860) 685-8480.",
+        ],
         "resource_ids": [],
         "links": [
-            {"label": "Request form DPS-0846-C (PDF)", "url": DPS_0846_C},
-            {"label": "How to get your record (Clean Slate CT)", "url": RECORDS_HOWTO},
-            {"label": "State Police Bureau of Identification", "url": SPBI_PAGE},
+            {"label": "Download form DPS-0846-C", "url": DPS_0846_C, "primary": True},
+            {"label": "More about getting your record", "url": RECORDS_HOWTO},
         ],
     },
     "hearing_request": {
-        "title": "If it should be erased but still shows, ask for a hearing",
-        "detail": "Send a record check dated on or after 1/1/2024 plus the Clean Slate hearing form (DESPP-0847-C) to DESPP.cshearing@ct.gov.",
+        "title": "If a conviction still shows that should be erased, ask for a hearing",
+        "detail": "Do this after you get your official record, only if it still shows a conviction we said is likely erased.",
+        "how": [
+            "Download the Clean Slate hearing form (button below) and fill it out.",
+            "Email the form and a copy of your official record (dated on or after January 1, 2024) to DESPP.cshearing@ct.gov.",
+        ],
         "resource_ids": [],
         "links": [
-            {"label": "Clean Slate hearing form (PDF)", "url": HEARING_FORM},
+            {"label": "Download the hearing form", "url": HEARING_FORM, "primary": True},
             {"label": "Email DESPP.cshearing@ct.gov", "url": "mailto:DESPP.cshearing@ct.gov"},
         ],
     },
     "petition_pre_2000": {
         "title": "Ask a court to erase older convictions",
-        "detail": "Older convictions are not erased automatically. You can petition the court (form JD-CR-202).",
+        "detail": "Convictions from before 2000 are not erased automatically, but you can ask a court.",
+        "how": [
+            "Download court form JD-CR-202 (button below).",
+            "Free legal aid can help you fill it out and file it with the court.",
+        ],
         "resource_ids": [],
-        "links": [{"label": "Court petition form JD-CR-202 (PDF)", "url": PETITION_FORM}],
+        "links": [{"label": "Download form JD-CR-202", "url": PETITION_FORM, "primary": True}],
     },
     "legal_aid_referral": {
         "title": "Talk with free legal aid",
-        "detail": "New Haven Legal Assistance (Greater New Haven) or Statewide Legal Services (elsewhere in CT).",
+        "detail": "A legal aid lawyer can look at your record with you and explain your options.",
+        "how": [
+            "If you live in the Greater New Haven area, call New Haven Legal Assistance.",
+            "Anywhere else in Connecticut, call Statewide Legal Services.",
+        ],
         "resource_ids": ["new-haven-legal-assistance", "statewide-legal-services-ct"],
         "links": [],
     },
 }
+
+# Most important step first, depending on the overall result.
+STEP_ORDER = {
+    "needs_review": ["legal_aid_referral", "confirm_record_spbi"],
+    "not_eligible": ["legal_aid_referral", "confirm_record_spbi"],
+    "petition": ["petition_pre_2000", "legal_aid_referral", "confirm_record_spbi"],
+}
+DEFAULT_ORDER = ["confirm_record_spbi", "hearing_request", "petition_pre_2000", "legal_aid_referral"]
+
+
+def ordered_steps(codes: list[str], overall: str | None) -> list[str]:
+    order = STEP_ORDER.get(overall or "", DEFAULT_ORDER)
+    rank = {c: i for i, c in enumerate(order + [c for c in DEFAULT_ORDER if c not in order])}
+    return sorted(dict.fromkeys(codes), key=lambda c: rank.get(c, 99))
 
 DONE_MESSAGE = "Your plan is ready. To start over, use \"Clear my info\"."
 
@@ -62,7 +92,7 @@ def _result_payload(s: sessions.Session) -> dict:
     used_ids = {st.resource_id for st in s.plan.steps() if st.resource_id in db} if s.plan else set()
     steps = [
         {"code": code, **NEXT_STEPS[code]}
-        for code in (s.screener.next_step_codes if s.screener else [])
+        for code in ordered_steps(s.screener.next_step_codes if s.screener else [], (s.rules_result or {}).get("overall"))
         if code in NEXT_STEPS
     ]
     for step in steps:

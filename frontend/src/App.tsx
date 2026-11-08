@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import AgentPanel from './AgentPanel'
+import ExamplesPage from './ExamplesPage'
 import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
@@ -73,6 +74,14 @@ export default function App() {
     sessionStorage.removeItem(MODE_KEY)
     if (location.search) history.replaceState(null, '', location.pathname)
     setMode(null)
+  }
+
+  if (new URLSearchParams(location.search).has('examples')) {
+    return (
+      <Shell onHome={() => (location.href = '/')}>
+        <ExamplesPage />
+      </Shell>
+    )
   }
 
   return mode ? (
