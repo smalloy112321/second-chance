@@ -1,5 +1,7 @@
 # The Second Chance Pathway Planner
 
+**Live app:** https://second-chance-pathway-planner.onrender.com (free hosting: the first visit after a quiet period can take about a minute to wake up)
+
 A web app that helps formerly incarcerated women in Connecticut, on their own or with a caseworker, check whether their record may have been erased under CT's Clean Slate law, build a 30-day reentry plan, and practice hard conversations.
 
 > **Status:** the planner (five agents + Clean Slate rules engine) and the Practice Room work end to end.
