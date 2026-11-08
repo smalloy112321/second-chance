@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from typing import Literal
 
 import uvicorn
@@ -25,8 +26,9 @@ import sessions
 import usage
 from agents import config
 
-HOST = "127.0.0.1"
-PORT = 8000
+# Locally: http://127.0.0.1:8000. On a host like Render, set HOST=0.0.0.0; PORT is provided.
+HOST = os.getenv("HOST", "127.0.0.1")
+PORT = int(os.getenv("PORT", "8000"))
 MAX_MESSAGE_CHARS = 8000  # room for pasted case notes
 
 app = FastAPI(title="The Second Chance Pathway Planner")
@@ -75,7 +77,7 @@ def health() -> dict:
     found = config.api_key_found()
     env_path = config.loaded_env_path()
     if env_path is None:
-        location = "not found"
+        location = "host environment variable" if found else "not found"
     elif env_path.parent == config.ROOT:
         location = "repo folder"
     else:
@@ -86,6 +88,8 @@ def health() -> dict:
         "env_location": location,
         "env_path": str(env_path) if env_path else None,
         "model": config.MODEL_NAME,
+        "daily_tokens_used": usage.daily_tokens_used(),
+        "daily_token_cap": usage.DAILY_TOKEN_CAP,
     }
 
 
@@ -267,5 +271,5 @@ else:
 
 if __name__ == "__main__":
     config.load_env()
-    print(f"Open http://{HOST}:{PORT}")
+    print(f"Open http://{'127.0.0.1' if HOST == '0.0.0.0' else HOST}:{PORT}")
     uvicorn.run(app, host=HOST, port=PORT, reload=False)

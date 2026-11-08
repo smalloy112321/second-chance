@@ -89,6 +89,17 @@ npm run dev      # http://localhost:5173, forwards /api to the backend on port 8
 npm run build    # rebuilds frontend/dist; commit it afterwards
 ```
 
+## Hosting online (Render)
+
+`render.yaml` deploys the app as one free Render web service.
+
+1. Sign in at [render.com](https://render.com) with GitHub.
+2. **New → Blueprint**, pick this repository, and click **Apply**.
+3. When Render asks for `PORTKEY_API_KEY`, paste the key there. It is stored as a Render secret, never in the repo.
+4. Wait for the deploy to finish, then open the `onrender.com` link. `/api/health` should show `"portkey_api_key_found": true`.
+
+Notes: the free plan sleeps after about 15 minutes idle, so the first visit can take about a minute. Sessions are kept in memory and the logs in `output/` are reset on each deploy. `DAILY_TOKEN_CAP` (default 2,000,000 tokens per UTC day across all visitors) stops a public link from running up the key.
+
 ## Stopping the server
 
 Press `Ctrl+C` in the terminal running `python backend/main.py`. If port 8000 is still busy (macOS):

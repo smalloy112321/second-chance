@@ -1,4 +1,5 @@
-"""Token meter: one row in output/usage_log.json for every model call, plus a per-session cap.
+"""Token meter: one row in output/usage_log.json for every model call, plus two caps:
+a per-session cap and an app-wide daily cap (so a public deployment can't run up the key).
 
 Rows are only ever appended. If the log file is unreadable it is renamed aside (never
 deleted) and a fresh list is started.
@@ -10,6 +11,7 @@ Token fields follow the OpenAI convention: input_tokens INCLUDES cached_input_to
 from __future__ import annotations
 
 import json
+import os
 import threading
 from datetime import datetime, timezone
 
@@ -19,14 +21,25 @@ from agents.config import DATA_DIR, OUTPUT_DIR
 
 USAGE_LOG_PATH = OUTPUT_DIR / "usage_log.json"
 SESSION_TOKEN_CAP = 150_000  # input + output tokens one browser session may spend (~$0.02 at class prices)
+# All sessions together, per UTC day (~$0.30/day at class prices). Override with DAILY_TOKEN_CAP.
+DAILY_TOKEN_CAP = int(os.getenv("DAILY_TOKEN_CAP", "2000000"))
 
 
 class SessionTokenCapExceeded(RuntimeError):
-    """Raised when a session has used up SESSION_TOKEN_CAP."""
+    """Raised when a session has used up SESSION_TOKEN_CAP, or the app its DAILY_TOKEN_CAP."""
+
+
+class DailyTokenCapExceeded(SessionTokenCapExceeded):
+    """Raised when all sessions together have used up today's DAILY_TOKEN_CAP."""
 
 
 _lock = threading.Lock()
 _session_totals: dict[str, int] | None = None  # session_id -> input + output tokens so far
+_daily_totals: dict[str, int] | None = None  # "YYYY-MM-DD" (UTC) -> input + output tokens
+
+
+def _today() -> str:
+    return datetime.now(timezone.utc).date().isoformat()
 
 
 def _read_rows() -> list[dict]:
@@ -44,16 +57,18 @@ def _read_rows() -> list[dict]:
 
 
 def _totals() -> dict[str, int]:
-    """Per-session totals, rebuilt from the log on first use so a restart keeps the cap."""
-    global _session_totals
-    if _session_totals is None:
-        _session_totals = {}
+    """Per-session and per-day totals, rebuilt from the log on first use so a restart keeps the caps."""
+    global _session_totals, _daily_totals
+    if _session_totals is None or _daily_totals is None:
+        _session_totals, _daily_totals = {}, {}
         for row in _read_rows():
+            n = int(row.get("input_tokens", 0)) + int(row.get("output_tokens", 0))
             sid = row.get("session_id")
             if sid:
-                _session_totals[sid] = _session_totals.get(sid, 0) + int(
-                    row.get("input_tokens", 0)
-                ) + int(row.get("output_tokens", 0))
+                _session_totals[sid] = _session_totals.get(sid, 0) + n
+            day = str(row.get("timestamp", ""))[:10]
+            if day:
+                _daily_totals[day] = _daily_totals.get(day, 0) + n
     return _session_totals
 
 
@@ -83,8 +98,11 @@ def log_model_call(
         tmp = USAGE_LOG_PATH.with_suffix(".tmp")
         tmp.write_text(json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
         tmp.replace(USAGE_LOG_PATH)
+        n = row["input_tokens"] + row["output_tokens"]
         if session_id:
-            totals[session_id] = totals.get(session_id, 0) + row["input_tokens"] + row["output_tokens"]
+            totals[session_id] = totals.get(session_id, 0) + n
+        day = row["timestamp"][:10]
+        _daily_totals[day] = _daily_totals.get(day, 0) + n
     return row
 
 
@@ -118,12 +136,22 @@ def session_tokens_used(session_id: str) -> int:
         return _totals().get(session_id, 0)
 
 
+def daily_tokens_used() -> int:
+    with _lock:
+        _totals()
+        return _daily_totals.get(_today(), 0)
+
+
 def session_tokens_remaining(session_id: str) -> int:
-    return max(0, SESSION_TOKEN_CAP - session_tokens_used(session_id))
+    """Tokens this session may still spend: the smaller of its own and the app's daily allowance."""
+    return max(0, min(SESSION_TOKEN_CAP - session_tokens_used(session_id), DAILY_TOKEN_CAP - daily_tokens_used()))
 
 
 def check_session_cap(session_id: str) -> None:
-    """Raise SessionTokenCapExceeded if this session has reached SESSION_TOKEN_CAP."""
+    """Raise if this session reached SESSION_TOKEN_CAP or the app reached today's DAILY_TOKEN_CAP."""
+    day = daily_tokens_used()
+    if day >= DAILY_TOKEN_CAP:
+        raise DailyTokenCapExceeded(f"The app has used {day:,} of today's {DAILY_TOKEN_CAP:,}-token limit.")
     used = session_tokens_used(session_id)
     if used >= SESSION_TOKEN_CAP:
         raise SessionTokenCapExceeded(

@@ -17,10 +17,22 @@ Emit = Callable[[str, dict], Awaitable[None]]
 LIMIT_MESSAGE = (
     "This session reached its limit. Please start a new session or contact a Reentry Welcome Center."
 )
+DAILY_LIMIT_MESSAGE = (
+    "The planner has reached today's usage limit. Please try again tomorrow, or contact a Reentry Welcome Center."
+)
 
 
 class BudgetExceeded(RuntimeError):
-    """The session hit SESSION_TOKEN_CAP; the app shows LIMIT_MESSAGE."""
+    """A token cap was hit; user_message is what the app shows."""
+
+    def __init__(self, detail: str, user_message: str = LIMIT_MESSAGE):
+        super().__init__(detail)
+        self.user_message = user_message
+
+
+def _budget_error(detail: str) -> BudgetExceeded:
+    daily = usage.daily_tokens_used() >= usage.DAILY_TOKEN_CAP
+    return BudgetExceeded(detail, DAILY_LIMIT_MESSAGE if daily else LIMIT_MESSAGE)
 
 
 class WrongModel(RuntimeError):
@@ -65,7 +77,7 @@ async def run_llm(
     try:
         usage.check_session_cap(ctx.session_id)
     except usage.SessionTokenCapExceeded as exc:
-        raise BudgetExceeded(str(exc)) from exc
+        raise _budget_error(str(exc)) from exc
 
     run_usage = RunUsage()
     try:
@@ -87,7 +99,7 @@ async def run_llm(
             agent_name, run_usage.input_tokens, run_usage.cache_read_tokens,
             run_usage.output_tokens, session_id=ctx.session_id, model=config.MODEL_NAME,
         )
-        raise BudgetExceeded(str(exc)) from exc
+        raise _budget_error(str(exc)) from exc
 
     messages = result.new_messages()
     tokens = usage.log_run(agent_name, messages, session_id=ctx.session_id)

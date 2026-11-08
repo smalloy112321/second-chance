@@ -1,0 +1,19 @@
+# Render Blueprint: deploys the app as one free web service.
+# In Render: New > Blueprint > pick this repo. Render asks for PORTKEY_API_KEY (paste it there; never commit it).
+services:
+  - type: web
+    name: second-chance-pathway-planner
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/main.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.7          # the version the tests run on
+      - key: HOST
+        value: 0.0.0.0         # listen publicly; Render provides PORT
+      - key: PORTKEY_API_KEY
+        sync: false            # secret: entered in the Render dashboard, not stored here
+      - key: DAILY_TOKEN_CAP
+        value: "2000000"       # all sessions together per UTC day (~$0.30 at class prices)

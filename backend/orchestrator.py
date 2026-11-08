@@ -10,7 +10,7 @@ from __future__ import annotations
 import resources
 import sessions
 from agents import intake, planner, practice, safety_guard, screener, verifier
-from agents.runtime import LIMIT_MESSAGE, BudgetExceeded, Ctx, Emit, _no_emit
+from agents.runtime import BudgetExceeded, Ctx, Emit, _no_emit
 
 # Next steps the UI can show (wording and forms from clean_slate_rules_spec.md section 5).
 NEXT_STEPS = {
@@ -96,9 +96,9 @@ async def handle_message(session_id: str, mode: str, message: str, emit: Emit = 
 
             result = await _build_plan(ctx, s)
             return {**result, "reply": turn.reply}
-        except BudgetExceeded:
-            payload = {"type": "limit", "reply": LIMIT_MESSAGE}
-            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
+        except BudgetExceeded as exc:
+            payload = {"type": "limit", "reply": exc.user_message}
+            await emit("error", {"message": exc.user_message, "kind": "limit"})
             return payload
 
 
@@ -140,9 +140,9 @@ async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _
                 await emit("safety_block", payload)
                 return payload
             return await practice.take_turn(ctx, s, message)
-        except BudgetExceeded:
-            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
-            return {"type": "limit", "reply": LIMIT_MESSAGE}
+        except BudgetExceeded as exc:
+            await emit("error", {"message": exc.user_message, "kind": "limit"})
+            return {"type": "limit", "reply": exc.user_message}
 
 
 async def end_practice(session_id: str, mode: str, emit: Emit = _no_emit, model=None) -> dict:
@@ -156,6 +156,6 @@ async def end_practice(session_id: str, mode: str, emit: Emit = _no_emit, model=
     async with s.lock:
         try:
             return {"type": "ended", "summary": await practice.run_summary(ctx, st)}
-        except BudgetExceeded:
-            await emit("error", {"message": LIMIT_MESSAGE, "kind": "limit"})
-            return {"type": "limit", "reply": LIMIT_MESSAGE}
+        except BudgetExceeded as exc:
+            await emit("error", {"message": exc.user_message, "kind": "limit"})
+            return {"type": "limit", "reply": exc.user_message}
