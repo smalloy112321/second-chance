@@ -37,5 +37,10 @@ def get_or_create(session_id: str, mode: str) -> Session:
     return s
 
 
+def peek(session_id: str) -> Session | None:
+    """The session if it exists, without creating one."""
+    return _sessions.get(session_id)
+
+
 def delete(session_id: str) -> bool:
     return _sessions.pop(session_id, None) is not None

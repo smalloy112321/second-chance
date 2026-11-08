@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, UsageLimitExceeded, UsageLimits
 
 import orchestrator
+import practice_suggest
 from agents import practice
 import resources
 import sessions
@@ -186,8 +187,10 @@ async def chat_stream(req: ChatRequest) -> StreamingResponse:
 
 
 @app.get("/api/practice/scenarios")
-def practice_scenarios() -> dict:
+def practice_scenarios(session_id: str | None = None) -> dict:
+    s = sessions.peek(session_id) if session_id else None
     return {
+        "suggested": practice_suggest.suggest(s.profile) if s and s.stage == "done" else None,
         "scenarios": [
             {k: sc[k] for k in ("id", "title", "description", "setting")} | {"character": practice.character_name(sc)}
             for sc in practice.scenarios().values()

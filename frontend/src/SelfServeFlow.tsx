@@ -16,6 +16,22 @@ import type { AgentState, ChatMessage, Resource } from './types'
  */
 
 const STEPS = ['About you', 'Record check', 'Your results', '30-day plan', 'Practice'] as const
+
+/** The five-step progress bar shown across the self-serve flow (also on the Practice screen). */
+export function ProgressSteps({ current, aboutFill = 100 }: { current: number; aboutFill?: number }) {
+  return (
+    <ol className="qa-steps" aria-label="Your progress">
+      {STEPS.map((s, i) => (
+        <li key={s} className={i < current ? 'is-done' : i === current ? 'is-current' : ''} aria-current={i === current ? 'step' : undefined}>
+          <span className="qa-bar" aria-hidden="true">
+            {i === 0 && <span className="qa-bar-fill" style={{ width: `${aboutFill}%` }} />}
+          </span>
+          {s}
+        </li>
+      ))}
+    </ol>
+  )
+}
 const TOTAL = QUESTIONS.length
 const AUTO_ADVANCE: QuestionId[] = ['familyViolence', 'sexOffense', 'probation', 'pending', 'finished']
 const CRISIS_IDS = ['988-lifeline', 'ct-safe-connect', 'ct-211-crisis', 'ct-211-can-housing']
@@ -267,16 +283,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
   return (
     <div className="qa">
       <div ref={topRef} className="qa-anchor" />
-      <ol className="qa-steps" aria-label="Your progress">
-        {STEPS.map((s, i) => (
-          <li key={s} className={i < stepIndex ? 'is-done' : i === stepIndex ? 'is-current' : ''} aria-current={i === stepIndex ? 'step' : undefined}>
-            <span className="qa-bar" aria-hidden="true">
-              {i === 0 && <span className="qa-bar-fill" style={{ width: `${aboutFill}%` }} />}
-            </span>
-            {s}
-          </li>
-        ))}
-      </ol>
+      <ProgressSteps current={stepIndex} aboutFill={aboutFill} />
 
       {finished ? (
         renderResults?.(resultView, () => setResultView('plan'), () => setResultView('slate'))

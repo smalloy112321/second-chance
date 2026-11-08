@@ -61,9 +61,14 @@ export function newSessionId(): string {
   return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
 }
 
-export async function fetchScenarios(): Promise<ScenarioCard[]> {
-  const res = await fetch('/api/practice/scenarios').catch(() => null)
-  return res && res.ok ? (await res.json()).scenarios : []
+export type ScenarioSuggestion = { id: string; reason: string } | null
+
+export async function fetchScenarios(sessionId?: string): Promise<{ scenarios: ScenarioCard[]; suggested: ScenarioSuggestion }> {
+  const q = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : ''
+  const res = await fetch(`/api/practice/scenarios${q}`).catch(() => null)
+  if (!res || !res.ok) return { scenarios: [], suggested: null }
+  const data = await res.json()
+  return { scenarios: data.scenarios, suggested: data.suggested ?? null }
 }
 
 export async function startPractice(body: { session_id: string; mode: Mode; scenario_id: string; difficulty: Difficulty }) {

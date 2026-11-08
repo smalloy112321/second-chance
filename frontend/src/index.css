@@ -493,3 +493,12 @@ main { flex: 1; }
 .plan-contact-tip { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--ink-soft); }
 .plan-contact-repeat { margin: 0; font-size: 0.88rem; color: var(--ink-soft); }
 .plan-contact-repeat a { color: var(--navy); font-weight: 600; }
+
+/* ---- Practice: self-serve layout ---- */
+.toolbar { align-items: flex-start; }
+.toolbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.qa-practice { max-width: 52rem; }
+.qa-practice .practice, .qa-practice .workspace-main { max-width: none; }
+.workspace.is-self { grid-template-columns: 1fr; }
+.scenario-suggested { align-self: flex-start; display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; background: var(--navy); color: #fff; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+.scenario-reason { font-size: 0.85rem; color: var(--accent); font-weight: 600; }

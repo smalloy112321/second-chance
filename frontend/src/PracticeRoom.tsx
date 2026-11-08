@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 import AgentPanel from './AgentPanel'
-import { fetchScenarios, newSessionId, startPractice, streamPost, type StreamEvent } from './api'
+import { fetchScenarios, newSessionId, type ScenarioSuggestion, startPractice, streamPost, type StreamEvent } from './api'
+import { withoutUnansweredQuestion } from './practiceDisplay'
 import { ResourceCard } from './Results'
 import {
   PRACTICE_AGENTS,
@@ -51,17 +52,21 @@ export default function PracticeRoom({
   initialScenario,
   initialDifficulty,
   onBack,
+  backLabel = 'Back to my plan',
   onTurnDone,
 }: {
   sessionId: string
   mode: Mode
   initialScenario?: string
   initialDifficulty?: Difficulty
+  /** Shown on the end screen (the top "Back to my plan" button lives in the page toolbar). */
   onBack?: () => void
+  backLabel?: string
   onTurnDone: () => void
 }) {
   const caseworker = mode === 'caseworker'
   const [scenarios, setScenarios] = useState<ScenarioCard[]>([])
+  const [suggested, setSuggested] = useState<ScenarioSuggestion>(null)
   const [scenarioId, setScenarioId] = useState(initialScenario ?? '')
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty ?? 'friendly')
   const [stage, setStage] = useState<'choose' | 'chat'>('choose')
@@ -83,8 +88,12 @@ export default function PracticeRoom({
   const bottom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    void fetchScenarios().then(setScenarios)
-  }, [])
+    void fetchScenarios(sessionId).then(({ scenarios: list, suggested: sug }) => {
+      setScenarios(list)
+      setSuggested(sug)
+      if (sug && !initialScenario) setScenarioId((cur) => cur || sug.id)
+    })
+  }, [sessionId, initialScenario])
 
   useEffect(() => {
     if (stage === 'chat') bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -248,11 +257,6 @@ export default function PracticeRoom({
       <section className="practice" aria-labelledby="practice-title">
         <div className="practice-head">
           <h1 id="practice-title">Practice a conversation</h1>
-          {onBack && (
-            <button type="button" className="btn btn-quiet" onClick={onBack}>
-              Back to planner
-            </button>
-          )}
         </div>
         <p className="lead">
           {caseworker
@@ -271,9 +275,11 @@ export default function PracticeRoom({
                 className="scenario-pick"
                 onClick={() => setScenarioId(s.id)}
               >
+                {suggested?.id === s.id && <span className="scenario-suggested">Suggested for you</span>}
                 <span className="scenario-title">{s.title}</span>
                 <span className="scenario-desc">{s.description}</span>
                 <span className="scenario-who">You'll talk with {s.character}</span>
+                {suggested?.id === s.id && <span className="scenario-reason">{suggested.reason}</span>}
               </button>
               {caseworker && (
                 <button type="button" className="link-button" onClick={() => void copyLink(s.id)}>
@@ -331,7 +337,7 @@ export default function PracticeRoom({
         </div>
 
         <ol className="practice-chat">
-          {items.map((x, i) => {
+          {(finished ? withoutUnansweredQuestion(items) : items).map((x, i) => {
             if (x.kind === 'partner')
               return (
                 <li key={i} className="pc pc-partner">
@@ -395,6 +401,8 @@ export default function PracticeRoom({
             onAgain={() => void begin(scenarioId, difficulty)}
             onHarder={harder ? () => void begin(scenarioId, harder) : undefined}
             onChoose={() => setStage('choose')}
+            onBack={onBack}
+            backLabel={backLabel}
           />
         ) : (
           !paused && (
@@ -456,15 +464,17 @@ export default function PracticeRoom({
         <div ref={bottom} />
       </section>
 
-      <div className="no-print">
-        <AgentPanel
-          names={PRACTICE_AGENTS}
-          agents={agents}
-          activity={activity}
-          open={panelOpen}
-          onToggle={() => setPanelOpen((o) => !o)}
-        />
-      </div>
+      {caseworker && (
+        <div className="no-print">
+          <AgentPanel
+            names={PRACTICE_AGENTS}
+            agents={agents}
+            activity={activity}
+            open={panelOpen}
+            onToggle={() => setPanelOpen((o) => !o)}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -530,12 +540,16 @@ function EndScreen({
   onAgain,
   onHarder,
   onChoose,
+  onBack,
+  backLabel,
 }: {
   summary: PracticeSummary | null
   caseworker: boolean
   onAgain: () => void
   onHarder?: () => void
   onChoose: () => void
+  onBack?: () => void
+  backLabel: string
 }) {
   return (
     <section className="card end-card" aria-labelledby="end-title">
@@ -582,6 +596,11 @@ function EndScreen({
         <button type="button" className="btn btn-quiet" onClick={onChoose}>
           Pick another scenario
         </button>
+        {onBack && (
+          <button type="button" className="btn btn-quiet" onClick={onBack}>
+            ← {backLabel}
+          </button>
+        )}
       </div>
     </section>
   )

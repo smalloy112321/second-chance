@@ -5,6 +5,7 @@ import ExamplesPage from './ExamplesPage'
 import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { PLAN_DONE_PREFIX } from './PlanView'
+import { ProgressSteps } from './SelfServeFlow'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import SelfServeFlow from './SelfServeFlow'
@@ -335,7 +336,8 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   }
 
   const firstCaseworkerTurn = caseworker && messages.length === 1
-  const footer = usage ? (
+  const backLabel = result ? (caseworker ? 'Back to the plan' : 'Back to my plan') : 'Build my plan'
+  const footer = usage && caseworker ? (
     <p className="usage-meter">
       This session: {usage.overall.total_tokens.toLocaleString()} tokens of {usage.session_token_cap.toLocaleString()}{' '}
       · about ${usage.overall.estimated_cost_usd.toFixed(4)}
@@ -351,21 +353,32 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
             Change
           </button>
         </p>
-        <button type="button" className="btn btn-quiet" onClick={clearAll} disabled={busy}>
-          Clear my info
-        </button>
+        <div className="toolbar-right">
+          <button type="button" className="btn btn-quiet" onClick={clearAll} disabled={busy}>
+            Clear my info
+          </button>
+          {view === 'practice' && (
+            <button type="button" className="btn btn-quiet" onClick={() => setView('plan')}>
+              ← {backLabel}
+            </button>
+          )}
+        </div>
       </div>
 
       {view === 'practice' ? (
-        <PracticeRoom
-          key={sessionId}
-          sessionId={sessionId}
-          mode={mode}
-          initialScenario={launch.scenario}
-          initialDifficulty={launch.difficulty}
-          onBack={() => setView('plan')}
-          onTurnDone={refreshUsage}
-        />
+        <div className={caseworker ? undefined : 'qa qa-practice'}>
+          {!caseworker && result && <ProgressSteps current={4} />}
+          <PracticeRoom
+            key={sessionId}
+            sessionId={sessionId}
+            mode={mode}
+            initialScenario={launch.scenario}
+            initialDifficulty={launch.difficulty}
+            onBack={() => setView('plan')}
+            backLabel={backLabel}
+            onTurnDone={refreshUsage}
+          />
+        </div>
       ) : !caseworker ? (
         <SelfServeFlow
           key={sessionId}
