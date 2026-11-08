@@ -1,7 +1,9 @@
 """Read-only access to backend/data/ct_resources.json (the checked resource list).
 
 The AI only ever sees id, name, category, description, towns, and who a resource serves.
-Phone numbers, addresses, websites, and notes go straight from this file to the screen.
+Phone numbers, addresses, websites, notes, and tips go straight from this file to the screen.
+`notes` are our research notes (shown on the results page); `tip` is a short plain-language
+version written for her (shown in the 30-day plan).
 """
 
 from __future__ import annotations

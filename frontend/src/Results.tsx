@@ -1,3 +1,4 @@
+import PlanView from './PlanView'
 import { convictedLine, erasureLine, overallBadge, statusLabel, waitingNote } from './resultsDisplay'
 import type { Mode, Resource, ResultPayload } from './types'
 
@@ -198,28 +199,7 @@ export default function Results({
           </ul>
         </div>
       )}
-      <p className="plan-summary">{result.plan.summary}</p>
-      <div className="weeks">
-        {result.plan.weeks.map((w) => (
-          <article key={w.week} className="card week">
-            <h4>
-              Week {w.week}: <span>{w.focus}</span>
-            </h4>
-            <ol className="steps">
-              {w.steps.map((s) => {
-                const r = lookup(s.resource_id)
-                return (
-                  <li key={s.step_id} className={`step priority-${s.priority}`}>
-                    <p className="step-action">{s.action}</p>
-                    <p className="step-why">{s.why}</p>
-                    {r && <ResourceCard r={r} />}
-                  </li>
-                )
-              })}
-            </ol>
-          </article>
-        ))}
-      </div>
+      <PlanView plan={result.plan} lookup={lookup} />
         </>
       )}
     </section>

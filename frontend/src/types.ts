@@ -21,6 +21,7 @@ export type Resource = {
   verified_source: string
   verified_on: string
   notes: string
+  tip?: string
 }
 
 export type RulesConviction = {
@@ -57,6 +58,8 @@ export type PlanStep = {
   why: string
   resource_id: string | null
   priority: 'high' | 'medium' | 'low'
+  /** Official form buttons added by the backend for record steps (same as the results page). */
+  official_links?: { label: string; url: string; primary?: boolean }[]
 }
 
 export type Plan = { summary: string; weeks: { week: number; focus: string; steps: PlanStep[] }[] }

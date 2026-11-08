@@ -7,6 +7,7 @@ If it still isn't approved, the plan is returned with a "needs human review" fla
 
 from __future__ import annotations
 
+import plan_links
 import resources
 import sessions
 from agents import intake, planner, practice, safety_guard, screener, verifier
@@ -89,7 +90,8 @@ DONE_MESSAGE = "Your plan is ready. To start over, use \"Clear my info\"."
 
 def _result_payload(s: sessions.Session) -> dict:
     db = resources.by_id()
-    used_ids = {st.resource_id for st in s.plan.steps() if st.resource_id in db} if s.plan else set()
+    plan = plan_links.apply(s.plan.model_dump() if s.plan else None, NEXT_STEPS)
+    used_ids = {st["resource_id"] for w in plan["weeks"] for st in w["steps"] if st.get("resource_id") in db} if plan else set()
     steps = [
         {"code": code, **NEXT_STEPS[code]}
         for code in ordered_steps(s.screener.next_step_codes if s.screener else [], (s.rules_result or {}).get("overall"))
@@ -101,7 +103,7 @@ def _result_payload(s: sessions.Session) -> dict:
         "type": "result",
         "rules": s.rules_result,
         "screener": s.screener.model_dump() if s.screener else None,
-        "plan": s.plan.model_dump() if s.plan else None,
+        "plan": plan,
         "verifier": s.verifier.model_dump() if s.verifier else None,
         "needs_human_review": s.needs_human_review,
         "next_steps": steps,

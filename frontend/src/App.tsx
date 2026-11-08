@@ -4,6 +4,7 @@ import AgentPanel from './AgentPanel'
 import ExamplesPage from './ExamplesPage'
 import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
+import { PLAN_DONE_PREFIX } from './PlanView'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import SelfServeFlow from './SelfServeFlow'
@@ -318,6 +319,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
 
   const clearAll = useCallback(async () => {
     await clearSession(sessionId)
+    Object.keys(sessionStorage).filter((k) => k.startsWith(PLAN_DONE_PREFIX)).forEach((k) => sessionStorage.removeItem(k))
     setSessionId(newSessionId())
     setMessages([{ role: 'assistant', text: GREETING[mode] }])
     setResult(null)
