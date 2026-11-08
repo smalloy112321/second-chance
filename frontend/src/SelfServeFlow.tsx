@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import {
-  CONVICTION_TYPES, HOUSING, HOUSING_MONTH, IDS, KIDS_COUNT, KIDS_WITH, LEVELS, QUESTIONS, STATES, YEARS,
-  YES_NO, buildAnswerMessage, emptyAnswers, emptyConviction, isAnswered, summary,
+  CONVICTION_TYPES, FELONY_CLASSES, HOUSING, HOUSING_MONTH, IDS, KIDS_COUNT, KIDS_WITH, LEVELS, QUESTIONS, STATES, YEARS,
+  YES_NO, buildAnswerMessage, emptyAnswers, emptyConviction, isAnswered, needsSentenceQuestion, summary,
   type Answers, type Conviction, type QuestionId,
 } from './qaForm'
 import { answerChoices, splitQuestion } from './qaRules'
@@ -15,7 +15,7 @@ import type { AgentState, ChatMessage, Resource } from './types'
  * unchanged.
  */
 
-const STEPS = ['About you', 'Record check', '30-day plan', 'Practice'] as const
+const STEPS = ['About you', 'Record check', 'Your results', '30-day plan', 'Practice'] as const
 const TOTAL = QUESTIONS.length
 const AUTO_ADVANCE: QuestionId[] = ['familyViolence', 'sexOffense', 'probation', 'pending', 'finished']
 const CRISIS_IDS = ['988-lifeline', 'ct-safe-connect', 'ct-211-crisis', 'ct-211-can-housing']
@@ -29,7 +29,7 @@ type Props = {
   finished: boolean
   db: Record<string, Resource>
   onSubmit: (text: string) => void
-  results?: ReactNode
+  renderResults?: (show: 'slate' | 'plan', onShowPlan: () => void, onBack: () => void) => ReactNode
 }
 
 function Choices({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) {
@@ -81,10 +81,11 @@ function Text({ label, value, onChange, placeholder }: { label: string; value: s
   )
 }
 
-export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, results }: Props) {
+export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, renderResults }: Props) {
   const [stage, setStage] = useState<Stage>('intro')
   const [a, setA] = useState<Answers>(emptyAnswers)
   const [followUp, setFollowUp] = useState('')
+  const [resultView, setResultView] = useState<'slate' | 'plan'>('slate')
   const topRef = useRef<HTMLDivElement>(null)
 
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((prev) => ({ ...prev, [k]: v }))
@@ -93,7 +94,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [stage, finished])
+  }, [stage, finished, resultView])
 
   const answeredCount = QUESTIONS.filter((q) => isAnswered(q.id, a)).length
   const qIndex = typeof stage === 'number' ? stage : -1
@@ -113,7 +114,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
   const safety = lastMsg?.role === 'safety' ? lastMsg : null
   const errorMsg = lastMsg?.role === 'error' ? lastMsg : null
   const followQ = submitted && !busy && !finished && lastMsg?.role === 'assistant' && messages.length > 2 ? lastMsg : null
-  const stepIndex = finished ? 2 : submitted && (agents.screener?.status === 'done') ? 2 : submitted && busy ? 1 : 0
+  const stepIndex = finished ? (resultView === 'plan' ? 3 : 2) : submitted ? 1 : 0
   const aboutFill = submitted || finished ? 100 : Math.round((answeredCount / TOTAL) * 100)
 
   const crisis = a.housingTonight === 'Nowhere safe tonight' ? CRISIS_IDS.map((id) => db[id]).filter(Boolean) : []
@@ -148,7 +149,13 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                   )}
                 </legend>
                 <Select label="What was it for?" value={c.type} options={CONVICTION_TYPES} onChange={(v) => setConviction(i, { type: v })} />
-                <Select label="Misdemeanor or felony?" value={c.level} options={LEVELS} onChange={(v) => setConviction(i, { level: v })} />
+                <Select label="Misdemeanor or felony?" value={c.level} options={LEVELS} onChange={(v) => setConviction(i, { level: v, felonyClass: '', underFive: '' })} />
+                {c.level === 'Felony' && (
+                  <Select label="What class of felony?" value={c.felonyClass} options={FELONY_CLASSES} onChange={(v) => setConviction(i, { felonyClass: v, underFive: '' })} />
+                )}
+                {needsSentenceQuestion(c) && (
+                  <Select label="Was the longest possible sentence under 5 years?" value={c.underFive} options={YES_NO} onChange={(v) => setConviction(i, { underFive: v })} />
+                )}
                 <div className="qa-row">
                   <Select label="Year it happened" value={c.yearHappened} options={YEARS} onChange={(v) => setConviction(i, { yearHappened: v })} placeholder="Year" />
                   <Select label="Year convicted" value={c.yearConvicted} options={YEARS} onChange={(v) => setConviction(i, { yearConvicted: v })} placeholder="Year" />
@@ -272,21 +279,16 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
       </ol>
 
       {finished ? (
-        results
+        renderResults?.(resultView, () => setResultView('plan'), () => setResultView('slate'))
       ) : stage === 'intro' ? (
         <section className="qa-card">
-          <h2 className="qa-question">Let’s check your record and build your plan together.</h2>
-          <ul className="qa-facts">
-            <li>
-              <strong>{TOTAL} questions</strong>
-            </li>
-            <li>
-              <strong>About 5 minutes</strong>
-            </li>
-            <li>You can go back and change any answer</li>
-          </ul>
+          <h2 className="qa-question">Let’s check your record.</h2>
+          <p className="qa-intro">
+            I’m going to ask you a series of questions, which should take about 5 minutes. You can go back and change
+            your answers at any time. Ready to get started?
+          </p>
           <button type="button" className="qa-choice qa-start" onClick={() => setStage(0)}>
-            Start
+            Let’s get started
           </button>
         </section>
       ) : q ? (

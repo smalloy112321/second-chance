@@ -62,7 +62,7 @@ export type Plan = { summary: string; weeks: { week: number; focus: string; step
 
 export type VerifierIssue = { step_id: string | null; check: string; problem: string; fix: string; source: string }
 
-export type NextStep = { code: string; title: string; detail: string; resource_ids: string[] }
+export type NextStep = { code: string; title: string; detail: string; resource_ids: string[]; links?: { label: string; url: string }[] }
 
 export type ResultPayload = {
   type: 'result'

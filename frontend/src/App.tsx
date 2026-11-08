@@ -364,10 +364,18 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           finished={!!result}
           db={db}
           onSubmit={(text) => void send(text)}
-          results={
+          renderResults={(show, onShowPlan, onBack) =>
             result ? (
               <div ref={resultsRef}>
-                <Results result={result} mode={mode} db={db} onPractice={() => setView('practice')} />
+                <Results
+                  result={result}
+                  mode={mode}
+                  db={db}
+                  show={show}
+                  onShowPlan={onShowPlan}
+                  onBackToResults={onBack}
+                  onPractice={() => setView('practice')}
+                />
               </div>
             ) : null
           }

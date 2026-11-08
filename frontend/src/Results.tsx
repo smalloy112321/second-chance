@@ -68,11 +68,18 @@ export default function Results({
   mode,
   db,
   onPractice,
+  show = 'all',
+  onShowPlan,
+  onBackToResults,
 }: {
   result: ResultPayload
   mode: Mode
   db: Record<string, Resource>
   onPractice?: () => void
+  /** 'slate' = Clean Slate results only, 'plan' = 30-day plan only (self-serve steps); 'all' = both */
+  show?: 'all' | 'slate' | 'plan'
+  onShowPlan?: () => void
+  onBackToResults?: () => void
 }) {
   const lookup = (id: string | null) => (id ? result.resources[id] ?? db[id] : undefined)
   const caseworker = mode === 'caseworker'
@@ -80,9 +87,9 @@ export default function Results({
   return (
     <section className="results" aria-labelledby="results-title">
       <div className="results-head">
-        <h2 id="results-title">{caseworker ? 'Client results' : 'Your results'}</h2>
+        <h2 id="results-title">{show === 'plan' ? 'Your 30-day plan' : caseworker ? 'Client results' : 'Your results'}</h2>
         <div className="btn-row no-print">
-          {onPractice && (
+          {onPractice && show !== 'slate' && (
             <button type="button" className="btn" onClick={onPractice}>
               Practice a conversation
             </button>
@@ -95,6 +102,8 @@ export default function Results({
         </div>
       </div>
 
+      {show !== 'plan' && (
+        <>
       <article className="card slate-card">
         <div className="slate-top">
           <h3>Clean Slate check</h3>
@@ -133,6 +142,15 @@ export default function Results({
                 <li key={s.code}>
                   <strong>{s.title}</strong>
                   <p>{s.detail}</p>
+                  {s.links && s.links.length > 0 && (
+                    <div className="step-links">
+                      {s.links.map((l) => (
+                        <a key={l.url} className="step-link" href={l.url} target="_blank" rel="noreferrer">
+                          {l.label} <span aria-hidden="true">↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   {s.resource_ids.map((id) => {
                     const r = lookup(id)
                     return r ? <ResourceCard key={id} r={r} /> : null
@@ -145,7 +163,24 @@ export default function Results({
         <p className="disclaimer">{result.rules.disclaimer}</p>
       </article>
 
-      <h3 className="plan-title">30-day plan</h3>
+          {show === 'slate' && onShowPlan && (
+            <div className="results-next no-print">
+              <button type="button" className="btn qa-next" onClick={onShowPlan}>
+                See my 30-day plan →
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {show !== 'slate' && (
+        <>
+          {show === 'plan' && onBackToResults && (
+            <button type="button" className="link-button results-back no-print" onClick={onBackToResults}>
+              ← Back to my results
+            </button>
+          )}
+      {show !== 'plan' && <h3 className="plan-title">30-day plan</h3>}
       {result.needs_human_review && (
         <div className="review-banner" role="alert">
           <strong>Needs human review.</strong> Our checker still found problems after one revision. Please review this
@@ -182,6 +217,8 @@ export default function Results({
           </article>
         ))}
       </div>
+        </>
+      )}
     </section>
   )
 }

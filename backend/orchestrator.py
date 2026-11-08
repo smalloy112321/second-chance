@@ -13,26 +13,44 @@ from agents import intake, planner, practice, safety_guard, screener, verifier
 from agents.runtime import BudgetExceeded, Ctx, Emit, _no_emit
 
 # Next steps the UI can show (wording and forms from clean_slate_rules_spec.md section 5).
+# Links go straight to official State of Connecticut pages (checked November 8, 2026).
+DPS_0846_C = "https://portal.ct.gov/-/media/DESPP/reports_and_records/DPS0846CCriminalHistoryRecordRequestFormRev120117pdf.pdf"
+SPBI_PAGE = "https://portal.ct.gov/despp/division-of-emergency-service-and-public-protection/reports-and-records/state-police-bureau-of-identification"
+RECORDS_HOWTO = "https://portal.ct.gov/cleanslate/how-to-access-criminal-records"
+HEARING_FORM = "https://portal.ct.gov/-/media/DESPP/CSP/SPBI/Clean-Slate/DESPP-CS-Hearing-Form.pdf"
+PETITION_FORM = "https://www.jud.ct.gov/webforms/forms/CR202.pdf"
+
 NEXT_STEPS = {
     "confirm_record_spbi": {
         "title": "Get your official record from State Police",
-        "detail": "Request a current record from the State Police, online or by mail with form DPS-0846-C.",
-        "resource_ids": ["ct-clean-slate-erasure"],
+        "detail": "This is the only way to know for sure. Request a copy of your Connecticut criminal history from the State Police using form DPS-0846-C. There is a fee; the form lists the cost.",
+        "resource_ids": [],
+        "links": [
+            {"label": "Request form DPS-0846-C (PDF)", "url": DPS_0846_C},
+            {"label": "How to get your record (Clean Slate CT)", "url": RECORDS_HOWTO},
+            {"label": "State Police Bureau of Identification", "url": SPBI_PAGE},
+        ],
     },
     "hearing_request": {
         "title": "If it should be erased but still shows, ask for a hearing",
-        "detail": "Send a record check dated on or after 1/1/2024 plus the Clean Slate hearing form to DESPP.cshearing@ct.gov.",
+        "detail": "Send a record check dated on or after 1/1/2024 plus the Clean Slate hearing form (DESPP-0847-C) to DESPP.cshearing@ct.gov.",
         "resource_ids": [],
+        "links": [
+            {"label": "Clean Slate hearing form (PDF)", "url": HEARING_FORM},
+            {"label": "Email DESPP.cshearing@ct.gov", "url": "mailto:DESPP.cshearing@ct.gov"},
+        ],
     },
     "petition_pre_2000": {
         "title": "Ask a court to erase older convictions",
         "detail": "Older convictions are not erased automatically. You can petition the court (form JD-CR-202).",
         "resource_ids": [],
+        "links": [{"label": "Court petition form JD-CR-202 (PDF)", "url": PETITION_FORM}],
     },
     "legal_aid_referral": {
         "title": "Talk with free legal aid",
         "detail": "New Haven Legal Assistance (Greater New Haven) or Statewide Legal Services (elsewhere in CT).",
         "resource_ids": ["new-haven-legal-assistance", "statewide-legal-services-ct"],
+        "links": [],
     },
 }
 

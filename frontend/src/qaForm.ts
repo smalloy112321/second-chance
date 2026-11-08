@@ -7,7 +7,14 @@
  * (backend/prompts/intake.md items 1-7). Name, IDs, work, and goals are optional.
  */
 
-export type Conviction = { type: string; level: string; yearHappened: string; yearConvicted: string }
+export type Conviction = {
+  type: string
+  level: string
+  felonyClass: string // only for felonies
+  underFive: string // only when the felony class is unclassified or unknown
+  yearHappened: string
+  yearConvicted: string
+}
 
 export type Answers = {
   firstName: string
@@ -49,6 +56,9 @@ export const CONVICTION_TYPES = [
   "I'd rather not say",
 ]
 export const LEVELS = ['Misdemeanor', 'Felony', NOT_SURE]
+// Only class D and E felonies (and some unclassified ones) can be erased under Clean Slate.
+export const FELONY_CLASSES = ['Class A', 'Class B', 'Class C', 'Class D', 'Class E', 'Unclassified', NOT_SURE]
+export const needsSentenceQuestion = (c: Conviction) => c.level === 'Felony' && (c.felonyClass === 'Unclassified' || c.felonyClass === NOT_SURE)
 export const YEARS = [...Array.from({ length: 2026 - 1970 + 1 }, (_, i) => String(2026 - i)), NOT_SURE]
 export const HOUSING = ['My own place', 'With family or friends', 'A shelter', 'A program or halfway house', 'Nowhere safe tonight']
 export const HOUSING_MONTH = ['My own place', 'With family or friends', 'A shelter', 'A program or halfway house', 'I don’t have a place yet', NOT_SURE]
@@ -65,7 +75,7 @@ export const STATES = [
   'West Virginia', 'Wisconsin', 'Wyoming',
 ]
 
-export const emptyConviction = (): Conviction => ({ type: '', level: '', yearHappened: '', yearConvicted: '' })
+export const emptyConviction = (): Conviction => ({ type: '', level: '', felonyClass: '', underFive: '', yearHappened: '', yearConvicted: '' })
 
 export const emptyAnswers = (): Answers => ({
   firstName: '', town: '', state: '', convictions: [emptyConviction()],
@@ -104,7 +114,9 @@ export function isAnswered(id: QuestionId, a: Answers): boolean {
     case 'name': return filled(a.firstName)
     case 'where': return filled(a.town) && filled(a.state)
     case 'convictions':
-      return a.convictions.length > 0 && a.convictions.every((c) => filled(c.type) && filled(c.level) && filled(c.yearHappened) && filled(c.yearConvicted))
+      return a.convictions.length > 0 && a.convictions.every((c) =>
+        filled(c.type) && filled(c.level) && filled(c.yearHappened) && filled(c.yearConvicted) &&
+        (c.level !== 'Felony' || filled(c.felonyClass)) && (!needsSentenceQuestion(c) || filled(c.underFive)))
     case 'familyViolence': return filled(a.familyViolence)
     case 'sexOffense': return filled(a.sexOffense)
     case 'probation': return filled(a.probation)
@@ -125,7 +137,9 @@ export function summary(id: QuestionId, a: Answers): string {
     case 'name': return a.firstName.trim()
     case 'where': return `${a.town.trim()}, ${a.state}`
     case 'convictions':
-      return a.convictions.map((c) => `${c.type} (${c.level.toLowerCase()}, convicted ${c.yearConvicted === NOT_SURE ? 'year not sure' : c.yearConvicted})`).join('; ')
+      return a.convictions
+        .map((c) => `${c.type} (${c.level === 'Felony' ? `felony, ${c.felonyClass === 'Unclassified' || c.felonyClass === NOT_SURE ? c.felonyClass.toLowerCase() : c.felonyClass}` : c.level.toLowerCase()}, convicted ${c.yearConvicted === NOT_SURE ? 'year not sure' : c.yearConvicted})`)
+        .join('; ')
     case 'familyViolence': return a.familyViolence
     case 'sexOffense': return a.sexOffense
     case 'probation': return a.probation
@@ -157,8 +171,13 @@ export function buildAnswerMessage(a: Answers): string {
   a.convictions.forEach((c, i) => {
     const dui = unknownType(c) ? NOT_SURE : isDui(c) ? 'yes' : 'no'
     const cannabis = unknownType(c) ? NOT_SURE : isCannabis(c) ? 'yes' : 'no'
+    let level = `Level: ${c.level}.`
+    if (c.level === 'Felony') {
+      level += ` Felony class: ${c.felonyClass}.`
+      if (needsSentenceQuestion(c)) level += ` Longest possible sentence was under 5 years: ${c.underFive}.`
+    }
     lines.push(
-      `Conviction ${i + 1}: ${c.type}. Level: ${c.level}. Year it happened: ${c.yearHappened}. ` +
+      `Conviction ${i + 1}: ${c.type}. ${level} Year it happened: ${c.yearHappened}. ` +
         `Year I was convicted: ${c.yearConvicted}. DUI: ${dui}. Cannabis possession: ${cannabis}.`,
     )
   })

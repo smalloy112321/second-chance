@@ -11,8 +11,8 @@ function sample(): Answers {
     town: 'Hartford',
     state: 'Connecticut',
     convictions: [
-      { type: 'Shoplifting or theft (larceny)', level: 'Misdemeanor', yearHappened: '2012', yearConvicted: '2012' },
-      { type: 'DUI (driving under the influence)', level: 'Misdemeanor', yearHappened: '2015', yearConvicted: '2015' },
+      { type: 'Shoplifting or theft (larceny)', level: 'Misdemeanor', felonyClass: '', underFive: '', yearHappened: '2012', yearConvicted: '2012' },
+      { type: 'DUI (driving under the influence)', level: 'Misdemeanor', felonyClass: '', underFive: '', yearHappened: '2015', yearConvicted: '2015' },
     ],
     familyViolence: 'No', sexOffense: 'No', probation: 'No', pending: 'No', finished: 'Yes',
     kids: 'Yes', kidsCount: '1', kidsWith: 'With family', familyCourt: 'No',
@@ -63,7 +63,7 @@ test('the message states every required item, including DUI and cannabis per con
 
 test('"I\'d rather not say" leaves DUI and cannabis as not sure instead of guessing', () => {
   const a = sample()
-  a.convictions = [{ type: "I'd rather not say", level: "I'm not sure", yearHappened: "I'm not sure", yearConvicted: "I'm not sure" }]
+  a.convictions = [{ type: "I'd rather not say", level: "I'm not sure", felonyClass: '', underFive: '', yearHappened: "I'm not sure", yearConvicted: "I'm not sure" }]
   const m = buildAnswerMessage(a)
   assert.ok(m.includes("DUI: I'm not sure. Cannabis possession: I'm not sure."), m)
 })
@@ -80,4 +80,18 @@ test('skipped optional questions are said to be skipped', () => {
   for (const s of ['First name: skipped', 'IDs I have: skipped', 'Working now: skipped', 'Top goals for the next 30 days: skipped']) {
     assert.ok(m.includes(s), s)
   }
+})
+
+test('felony: the class is required, and the 5-year question only when the class is unknown', () => {
+  const felony = { type: 'Drug sale', level: 'Felony', felonyClass: '', underFive: '', yearHappened: '2014', yearConvicted: '2014' }
+  const a = { ...sample(), convictions: [felony] }
+  assert.equal(isAnswered('convictions', a), false) // class missing
+  a.convictions = [{ ...felony, felonyClass: 'Class D' }]
+  assert.equal(isAnswered('convictions', a), true) // known class: no 5-year question
+  assert.ok(buildAnswerMessage(a).includes('Level: Felony. Felony class: Class D. Year it happened'), buildAnswerMessage(a))
+  a.convictions = [{ ...felony, felonyClass: "I'm not sure" }]
+  assert.equal(isAnswered('convictions', a), false) // needs the 5-year answer
+  a.convictions = [{ ...felony, felonyClass: "I'm not sure", underFive: 'Yes' }]
+  assert.equal(isAnswered('convictions', a), true)
+  assert.ok(buildAnswerMessage(a).includes("Felony class: I'm not sure. Longest possible sentence was under 5 years: Yes."), buildAnswerMessage(a))
 })
