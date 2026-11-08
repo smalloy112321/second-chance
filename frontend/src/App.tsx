@@ -82,11 +82,22 @@ export default function App() {
   )
 }
 
-function Shell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
+function Shell({ children, footer, onHome }: { children: React.ReactNode; footer?: React.ReactNode; onHome?: () => void }) {
   return (
     <div className="page">
       <header className="site-header no-print">
-        <Logo />
+        <a
+          href="/"
+          className="logo-link"
+          aria-label="The Second Chance Pathway Planner, go to the homepage"
+          onClick={(e) => {
+            e.preventDefault()
+            if (onHome) onHome()
+            else window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+        >
+          <Logo />
+        </a>
       </header>
       <main id="main">{children}</main>
       <footer className="site-footer">
@@ -321,7 +332,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   ) : null
 
   return (
-    <Shell footer={footer}>
+    <Shell footer={footer} onHome={changeMode}>
       <div className="toolbar no-print">
         <p className="mode-pill">
           {MODE_LABEL[mode]}
