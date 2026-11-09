@@ -354,15 +354,15 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
         </div>
       </div>
 
-      {caseworker && (view === 'practice' ? !!result : true) && (
+      {caseworker && view !== 'practice' && (
         <div className="cw-steps no-print">
           <ProgressSteps current={caseStep} labels={CASEWORKER_STEPS} />
         </div>
       )}
 
       {view === 'practice' ? (
-        <div className={caseworker ? undefined : 'qa qa-practice'}>
-          {!caseworker && result && <ProgressSteps current={4} />}
+        <div className="qa qa-practice">
+          {result && <ProgressSteps current={4} labels={caseworker ? CASEWORKER_STEPS : undefined} />}
           <PracticeRoom
             key={sessionId}
             sessionId={sessionId}

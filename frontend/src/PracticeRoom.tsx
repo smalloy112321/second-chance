@@ -18,6 +18,12 @@ const DIFFICULTIES: { id: Difficulty; label: string; hint: string }[] = [
   { id: 'neutral', label: 'Neutral', hint: 'Businesslike' },
   { id: 'skeptical', label: 'Skeptical', hint: 'Polite but doubtful' },
 ]
+/** Why a scenario is suggested, worded for a caseworker (the backend's reasons say "you"). */
+const CASEWORKER_REASON: Record<string, string> = {
+  reunification: 'Your notes mention a family court or DCF case.',
+  job_interview: 'Your notes say the client is looking for work.',
+  landlord: 'Your notes say the client needs a stable place to live.',
+}
 const HARDER: Record<Difficulty, Difficulty | null> = { friendly: 'neutral', neutral: 'skeptical', skeptical: null }
 
 const SKILL_LABEL: Record<string, string> = {
@@ -249,7 +255,11 @@ export default function PracticeRoom({
                 <span className="scenario-title">{s.title}</span>
                 <span className="scenario-desc">{s.description}</span>
                 <span className="scenario-who">You'll talk with {s.character}</span>
-                {suggested?.id === s.id && <span className="scenario-reason">{suggested.reason}</span>}
+                {suggested?.id === s.id && (
+                  <span className="scenario-reason">
+                    {caseworker ? CASEWORKER_REASON[suggested.id] ?? suggested.reason : suggested.reason}
+                  </span>
+                )}
               </button>
               {caseworker && (
                 <button type="button" className="link-button" onClick={() => void copyLink(s.id)}>
