@@ -49,6 +49,26 @@ DENIAL_PHRASES = (
     "i don't have any record",
     "i don't have a criminal",
     "no criminal record",
+    # Spanish
+    "nunca he sido arrestada",
+    "nunca he sido arrestado",
+    "nunca he sido condenada",
+    "nunca he sido condenado",
+    "no tengo antecedentes",
+    "no tengo récord",
+    "no tengo record",
+    "mi récord está limpio",
+    "mi record está limpio",
+    "nada en mi récord",
+    # Portuguese
+    "nunca fui presa",
+    "nunca fui preso",
+    "nunca fui condenada",
+    "nunca fui condenado",
+    "não tenho antecedentes",
+    "não tenho ficha",
+    "minha ficha está limpa",
+    "nada na minha ficha",
 )
 
 roleplay_agent = Agent(name="roleplay", output_type=RoleplayLine, retries=2)

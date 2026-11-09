@@ -22,26 +22,61 @@ IDs (state ID, birth certificate, Social Security card):
 Work (working now? what work she wants):
 Top 3 goals for the next 30 days:`
 
-/** Each fact the agents need, and words that show the notes mention it. */
+export const CASE_NOTES_TEMPLATE_ES = `Nombre de la clienta:
+Pueblo o ciudad:
+Condena 1: qué fue / delito menor o grave (y la clase, si es grave) / año en que pasó / año de la condena / ¿DUI? sí o no / ¿posesión de cannabis? sí o no
+Condena 2:
+¿Alguna condena por violencia familiar? sí o no
+¿Alguna condena por delito sexual? sí o no
+¿Está en libertad condicional o probatoria ahora? sí o no
+¿Tiene un caso penal abierto en Connecticut ahora? sí o no
+¿Terminó todas las partes de cada sentencia (prisión, probatoria, libertad condicional)? sí o no
+Hijos (cuántos, con quién viven, si hay caso en la corte de familia o con DCF):
+Vivienda (esta noche y el resto del mes):
+Identificaciones (ID del estado, acta de nacimiento, tarjeta de Seguro Social):
+Trabajo (¿trabaja ahora? ¿qué trabajo quiere?):
+3 metas principales para los próximos 30 días:`
+
+export const CASE_NOTES_TEMPLATE_PT = `Primeiro nome da cliente:
+Cidade:
+Condenação 1: o que foi / contravenção ou crime grave (e a classe, se for grave) / ano em que aconteceu / ano da condenação / DUI? sim ou não / posse de cannabis? sim ou não
+Condenação 2:
+Alguma condenação por violência familiar? sim ou não
+Alguma condenação por crime sexual? sim ou não
+Está em liberdade condicional ou probatória agora? sim ou não
+Tem algum processo criminal aberto em Connecticut agora? sim ou não
+Cumpriu todas as partes de cada pena (prisão, probatória, liberdade condicional)? sim ou não
+Filhos (quantos, com quem moram, se há processo na vara de família ou com o DCF):
+Moradia (esta noite e o resto do mês):
+Documentos (ID do estado, certidão de nascimento, cartão do Seguro Social):
+Trabalho (trabalha agora? que trabalho quer?):
+3 metas principais para os próximos 30 dias:`
+
+export const caseNotesTemplate = (lang: string) =>
+  lang === 'es' ? CASE_NOTES_TEMPLATE_ES : lang === 'pt' ? CASE_NOTES_TEMPLATE_PT : CASE_NOTES_TEMPLATE
+
+/** Each fact the agents need, and words (English, Spanish, Portuguese) that show the notes mention it. */
 export const CHECKS: { label: string; pattern: RegExp }[] = [
-  { label: 'Town', pattern: /\btown\b|\b(lives|living) in\b|, ct\b|connecticut|hartford|new haven|bridgeport|waterbury|stamford|new britain/i },
+  { label: 'Town', pattern: /\btown\b|\b(lives|living) in\b|, ct\b|connecticut|hartford|new haven|bridgeport|waterbury|stamford|new britain|pueblo|ciudad|vive en|cidade|mora em/i },
   { label: 'Conviction years', pattern: /\b(19|20)\d\d\b/ },
-  { label: 'Misdemeanor or felony', pattern: /misdemeanor|felony/i },
-  { label: 'DUI (yes or no)', pattern: /\bdui\b|\bdwi\b|driving under/i },
-  { label: 'Cannabis possession (yes or no)', pattern: /cannabis|marijuana/i },
-  { label: 'Family violence', pattern: /family violence|domestic/i },
-  { label: 'Sex offense', pattern: /sex offen/i },
-  { label: 'Probation or parole now', pattern: /probation|parole/i },
-  { label: 'Open criminal case', pattern: /pending|open (criminal )?case|open charge/i },
-  { label: 'Sentence finished', pattern: /sentence|finished probation|completed/i },
-  { label: 'Children', pattern: /child|kids?\b|\bsons?\b|daughters?|no children/i },
-  { label: 'Housing', pattern: /hous|staying|shelter|apartment|living with|homeless/i },
-  { label: 'IDs', pattern: /\bids?\b|birth certificate|social security|license/i },
-  { label: 'Goals', pattern: /goal|wants? to|interested in/i },
+  { label: 'Misdemeanor or felony', pattern: /misdemeanor|felony|delito menor|delito grave|felon[ií]a|contraven[cç][aã]o|crime grave/i },
+  { label: 'DUI (yes or no)', pattern: /\bdui\b|\bdwi\b|driving under|manejar (bajo|ebri)|conducir (bajo|ebri)|dirigir (alcoolizad|embriagad|sob)/i },
+  { label: 'Cannabis possession (yes or no)', pattern: /cannabis|marijuana|marihuana|maconha/i },
+  { label: 'Family violence', pattern: /family violence|domestic|violencia (familiar|dom[eé]stica)|viol[eê]ncia (familiar|dom[eé]stica)/i },
+  { label: 'Sex offense', pattern: /sex offen|delito sexual|crime sexual/i },
+  { label: 'Probation or parole now', pattern: /probation|parole|probatoria|probat[oó]ria|libertad condicional|liberdade condicional/i },
+  { label: 'Open criminal case', pattern: /pending|open (criminal )?case|open charge|caso (penal )?abierto|cargos pendientes|processo (criminal )?aberto|acusa[cç][aã]o pendente/i },
+  { label: 'Sentence finished', pattern: /sentence|finished probation|completed|sentencia|termin[oó]|cumpli[oó]|\bpena\b|cumpriu/i },
+  { label: 'Children', pattern: /child|kids?\b|\bsons?\b|daughters?|no children|hij[oa]s?|niñ[oa]s|filh[oa]s?|crian[cç]as/i },
+  { label: 'Housing', pattern: /hous|staying|shelter|apartment|living with|homeless|vivienda|se queda|refugio|apartamento|moradia|abrigo|mora com/i },
+  { label: 'IDs', pattern: /\bids?\b|birth certificate|social security|license|identificaci|acta de nacimiento|seguro social|documentos?|certid[aã]o/i },
+  { label: 'Goals', pattern: /goal|wants? to|interested in|metas?\b|quiere|objetivos?|quer\b/i },
 ]
 
-const TEMPLATE_LINES = new Set(CASE_NOTES_TEMPLATE.split('\n').map((l) => l.trim()))
-const CONVICTION_HINT = CASE_NOTES_TEMPLATE.split('\n')[2].replace(/^Conviction 1:\s*/, '')
+const ALL_TEMPLATES = [CASE_NOTES_TEMPLATE, CASE_NOTES_TEMPLATE_ES, CASE_NOTES_TEMPLATE_PT]
+const TEMPLATE_LINES = new Set(ALL_TEMPLATES.flatMap((tpl) => tpl.split('\n').map((l) => l.trim())))
+const CONVICTION_LINE = /^\s*(conviction|condena|condena[cç][aã]o)\s*\d+\s*:\s*/i
+const CONVICTION_HINTS = ALL_TEMPLATES.map((tpl) => tpl.split('\n')[2].replace(CONVICTION_LINE, ''))
 
 /** Facts the notes don't mention yet (empty notes: nothing listed). Template lines and hints that
  * are still unfilled don't count as mentioning a fact. */
@@ -50,20 +85,20 @@ export function notMentioned(notes: string): string[] {
     .split('\n')
     .filter((line) => !TEMPLATE_LINES.has(line.trim()))
     .join('\n')
-    .split(CONVICTION_HINT)
-    .join('')
-  if (!text.replace(/[A-Za-z0-9 ()?,/']*:\s*$/gm, '').trim()) return []
-  return [...CHECKS.filter((c) => !c.pattern.test(text)).map((c) => c.label), ...convictionGaps(text)]
+  const cleaned = CONVICTION_HINTS.reduce((acc, hint) => acc.split(hint).join(''), text)
+  if (!cleaned.replace(/[\p{L}0-9 ()?¿,/']*:\s*$/gmu, '').trim()) return []
+  return [...CHECKS.filter((c) => !c.pattern.test(cleaned)).map((c) => c.label), ...convictionGaps(cleaned)]
 }
 
 const YEAR = /\b(19|20)\d\d\b/g
-const OFFENSE_YEAR = /(offen[cs]e|happened|arrest\w*|incident|committed)\D{0,25}\b(19|20)\d\d\b/i
-const CONVICTED_YEAR = /(convict\w*|sentenc\w*|plea\w*|pled)\D{0,25}\b(19|20)\d\d\b/i
+const OFFENSE_YEAR = /(offen[cs]e|happened|arrest\w*|incident|committed|pas[oó]|ocurri[oó]|delito en|aconteceu|ocorreu|pres[ao] em)\D{0,25}\b(19|20)\d\d\b/i
+const CONVICTED_YEAR = /(convict\w*|sentenc\w*|plea\w*|pled|condenad[oa]|condena\b|condena[cç][aã]o)\D{0,25}\b(19|20)\d\d\b/i
+const LEVEL = /misdemeanor|felony|delito menor|delito grave|felon[ií]a|contraven[cç][aã]o|crime grave/i
 
 /** Each conviction in the notes: "(1) ... (2) ..." items, or "Conviction 1: ..." lines. */
 export function convictionSegments(text: string): string[] {
-  const lines = text.split('\n').filter((l) => /^\s*conviction\s*\d+\s*:/i.test(l))
-  if (lines.length) return lines.map((l) => l.replace(/^\s*conviction\s*\d+\s*:\s*/i, '')).filter((l) => l.trim())
+  const lines = text.split('\n').filter((l) => CONVICTION_LINE.test(l))
+  if (lines.length) return lines.map((l) => l.replace(CONVICTION_LINE, '')).filter((l) => l.trim())
   const parts = text.split(/\(\d\)/)
   if (parts.length < 2) return []
   // The last item runs to the end of its line (the notes go on to other facts after it).
@@ -76,7 +111,7 @@ export function convictionGaps(text: string): string[] {
   convictionSegments(text).forEach((seg, i) => {
     const years = seg.match(YEAR) ?? []
     const missing: string[] = []
-    if (!/misdemeanor|felony/i.test(seg)) missing.push('misdemeanor or felony')
+    if (!LEVEL.test(seg)) missing.push('misdemeanor or felony')
     if (years.length === 0) missing.push('year it happened', 'year convicted')
     else if (years.length === 1) {
       if (CONVICTED_YEAR.test(seg) && !OFFENSE_YEAR.test(seg)) missing.push('year it happened')

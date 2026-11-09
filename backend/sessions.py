@@ -23,6 +23,7 @@ class Session:
     needs_human_review: bool = False
     final: dict | None = None
     practice: object | None = None  # agents.practice.PracticeState
+    lang: str = "en"  # the site language; agents write user-facing text in it
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 

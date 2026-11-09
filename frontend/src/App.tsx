@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import ExamplesPage from './ExamplesPage'
 import Logo, { LogoMark } from './Logo'
+import LanguagePicker, { Lines } from './LanguagePicker'
+import { getLang, t, useLang } from './i18n'
+import { setDateLocale } from './planDisplay'
 import PracticeRoom from './PracticeRoom'
-import { PLAN_DONE_PREFIX } from './PlanView'
 import { stayHere, useHistoryStep } from './historyStep'
+import { clearTab, loadTab, saveTab } from './tabStore'
 import { ProgressSteps, WorkingCard } from './SelfServeFlow'
-import { CASE_NOTES_TEMPLATE, notMentioned } from './caseNotes'
+import { caseNotesTemplate, notMentioned } from './caseNotes'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import SelfServeFlow from './SelfServeFlow'
@@ -41,6 +44,13 @@ const LEAVE_MESSAGE = 'Go back to the start? The results and 30-day plan on this
 
 const CASEWORKER_STEPS = ['Case notes', 'Record check', 'Results', '30-day plan', 'Practice'] as const
 
+/** "Conviction 3: year it happened" in the site language. */
+function translateGap(gap: string): string {
+  const m = gap.match(/^Conviction (\d+): (.*)$/)
+  if (!m) return t(gap)
+  return `${t('Conviction {n}', { n: m[1] })}: ${m[2].split(', ').map((part) => t(part)).join(', ')}`
+}
+
 const freshAgents = (): Record<AgentName, AgentState> =>
   Object.fromEntries(AGENTS.map((a) => [a, { status: 'idle', summary: '', tokens: 0 }])) as Record<AgentName, AgentState>
 
@@ -67,17 +77,21 @@ function launchFromUrl(): Launch | null {
 }
 
 export default function App() {
+  const lang = useLang() // re-render the whole site when the language changes
+  setDateLocale(lang === 'es' ? 'es-US' : lang === 'pt' ? 'pt-BR' : 'en')
   const [linkLaunch] = useState(launchFromUrl)
   const [mode, setMode] = useState<Mode | null>(linkLaunch ? 'self_serve' : storedMode)
-  const [launch, setLaunch] = useState<Launch>(linkLaunch ?? { view: 'plan' })
+  const [launch, setLaunch] = useState<Launch>(linkLaunch ?? { view: loadTab<Launch['view']>('launchView', 'plan') })
 
   const choose = (m: Mode, view: Launch['view'] = 'plan') => {
     sessionStorage.setItem(MODE_KEY, m)
+    saveTab('launchView', view)
     setLaunch({ view })
     setMode(m)
   }
   const leave = () => {
     sessionStorage.removeItem(MODE_KEY)
+    clearTab()
     if (location.search) history.replaceState(history.state, '', location.pathname)
     setMode(null)
   }
@@ -98,7 +112,7 @@ export default function App() {
       fresh: true,
       allow: (next) => {
         if (next !== null || !hasWork.current) return true
-        if (window.confirm(LEAVE_MESSAGE)) return true
+        if (window.confirm(t(LEAVE_MESSAGE))) return true
         stayHere()
         return false
       },
@@ -127,7 +141,7 @@ function Shell({ children, footer, onHome }: { children: React.ReactNode; footer
         <a
           href="/"
           className="logo-link"
-          aria-label="The Second Chance Pathway Planner, go to the homepage"
+          aria-label={t("The Second Chance Pathway Planner, go to the homepage")}
           onClick={(e) => {
             e.preventDefault()
             if (onHome) onHome()
@@ -136,20 +150,20 @@ function Shell({ children, footer, onHome }: { children: React.ReactNode; footer
         >
           <Logo />
         </a>
+        <LanguagePicker />
       </header>
       <main id="main">{children}</main>
       <footer className="site-footer">
         <div className="footer-text">
         {footer}
-        <p>
-          This planner gives general information, not legal advice. For your situation, talk with a legal aid lawyer.
-        </p>
+        <p>{t('This planner gives general information, not legal advice. For your situation, talk with a legal aid lawyer.')}</p>
+        {getLang() !== 'en' && <p>{t('Translated with AI help. Please check important details, like legal terms, with someone who speaks the language.')}</p>}
         <p className="footer-source">
-          Clean Slate figure (170,000 people) source:{' '}
+          {t('Clean Slate figure (170,000 people) source:')}{' '}
           <a href="https://ctmirror.org/2026/07/15/ct-clears-clean-slate-backlog/" target="_blank" rel="noreferrer">
             CT Mirror, July 15, 2026
           </a>
-          . Homepage photo (illustrative):{' '}
+          . {t('Homepage photo (illustrative):')}{' '}
           <a href="https://unsplash.com/photos/four-women-laughing-outdoors-together-EU-Oc9VQHRg" target="_blank" rel="noreferrer">
             Crosby Hinze on Unsplash
           </a>
@@ -168,7 +182,7 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
     <Shell>
       <section className="landing" aria-labelledby="landing-title">
         <h1 id="landing-title" className="sr-only">
-          The Second Chance Pathway Planner
+          {t('The Second Chance Pathway Planner')}
         </h1>
         <div className="hero">
           {photoOk && (
@@ -176,7 +190,7 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
               <img
                 className="hero-photo"
                 src="/hero-photo.jpg"
-                alt="Four women with their arms around each other, laughing together outdoors"
+                alt={t("Four women with their arms around each other, laughing together outdoors")}
                 onError={() => setPhotoOk(false)}
               />
             </figure>
@@ -184,37 +198,37 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
           <div className="hero-band">
             <div className="hero-inner">
               <p className="hero-text">
-                <strong>Connecticut’s Clean Slate law has erased the convictions of 170,000 people.</strong> Check if
-                your record was cleared, build a 30-day plan, and practice the conversations that matter most.
+                <strong>{t('Connecticut’s Clean Slate law has erased the convictions of 170,000 people.')}</strong>{' '}
+                {t('Check if your record was cleared, build a 30-day plan, and practice the conversations that matter most.')}
               </p>
             </div>
           </div>
         </div>
-        <p className="choose-prompt">Let’s get started. Who are you planning for?</p>
+        <p className="landing-for">
+          {t('Built for women coming home from incarceration in Connecticut, and the caseworkers who support them.')}
+        </p>
+        <p className="choose-prompt">{t('Let’s get started. Who are you planning for?')}</p>
         <div className="choices">
           <button type="button" className="choice choice-self" onClick={() => onChoose('self_serve')}>
             <span className="choice-title">
-              I'm planning
-              <br />for myself
+              <Lines text={t("I'm planning\nfor myself")} />
             </span>
-            <span className="choice-sub">Go at your own pace. One question at a time.</span>
-            <span className="choice-cta">Get started →</span>
+            <span className="choice-sub">{t('Go at your own pace. One question at a time.')}</span>
+            <span className="choice-cta">{t('Get started')} →</span>
           </button>
           <button type="button" className="choice choice-case" onClick={() => onChoose('caseworker')}>
             <span className="choice-title">
-              I'm helping
-              <br />a client
+              <Lines text={t("I'm helping\na client")} />
             </span>
-            <span className="choice-sub">Paste case notes and get a plan you can print.</span>
-            <span className="choice-cta">Get started →</span>
+            <span className="choice-sub">{t('Paste case notes and get a plan you can print.')}</span>
+            <span className="choice-cta">{t('Get started')} →</span>
           </button>
           <button type="button" className="choice choice-practice" onClick={() => onChoose('self_serve', 'practice')}>
             <span className="choice-title">
-              I want to practice
-              <br />a conversation
+              <Lines text={t('I want to practice\na conversation')} />
             </span>
-            <span className="choice-sub">Practice with a hiring manager, landlord, or social worker.</span>
-            <span className="choice-cta">Get started →</span>
+            <span className="choice-sub">{t('Practice with a hiring manager, landlord, or social worker.')}</span>
+            <span className="choice-cta">{t('Get started')} →</span>
           </button>
         </div>
       </section>
@@ -226,13 +240,22 @@ function Workspace({
   mode, launch, onChangeMode, hasWork,
 }: { mode: Mode; launch: Launch; onChangeMode: () => void; hasWork: { current: boolean } }) {
   const caseworker = mode === 'caseworker'
-  const [sessionId, setSessionId] = useState(() => launch.sessionId ?? newSessionId())
-  const [view, setView] = useState<Launch['view']>(launch.view)
-  const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', text: GREETING[mode] }])
+  // Answers, results, and the plan survive a reload in this tab only (see tabStore.ts).
+  const [sessionId, setSessionId] = useState(() => launch.sessionId ?? loadTab(`${mode}.sid`, newSessionId()))
+  const [view, setView] = useState<Launch['view']>(() => loadTab(`${mode}.view`, launch.view))
+  const [messages, setMessages] = useState<ChatMessage[]>(() => loadTab(`${mode}.messages`, [{ role: 'assistant', text: GREETING[mode] }]))
   const [input, setInput] = useState('')
-  const [cwStarted, setCwStarted] = useState(false)
+  const [cwStarted, setCwStarted] = useState(() => loadTab(`${mode}.started`, false))
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<ResultPayload | null>(null)
+  const [result, setResult] = useState<ResultPayload | null>(() => loadTab(`${mode}.result`, null))
+  useEffect(() => {
+    if (busy) return // a half-finished request isn't saved; after a reload she can submit again
+    saveTab(`${mode}.sid`, sessionId)
+    saveTab(`${mode}.view`, view)
+    saveTab(`${mode}.messages`, messages)
+    saveTab(`${mode}.started`, cwStarted)
+    saveTab(`${mode}.result`, result)
+  }, [mode, sessionId, view, messages, cwStarted, result, busy])
   const [agents, setAgents] = useState(freshAgents)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [db, setDb] = useState<Record<string, Resource>>({})
@@ -326,7 +349,7 @@ function Workspace({
       const msg =
         e instanceof Error && e.message !== 'Failed to fetch'
           ? e.message
-          : 'Could not reach the planner. Is the server running?'
+          : t('Could not reach the planner. Is the server running?')
       setMessages((m) => [...m, { role: 'error', text: msg }])
     } finally {
       setBusy(false)
@@ -338,7 +361,7 @@ function Workspace({
 
   const clearAll = useCallback(async () => {
     await clearSession(sessionId)
-    Object.keys(sessionStorage).filter((k) => k.startsWith(PLAN_DONE_PREFIX)).forEach((k) => sessionStorage.removeItem(k))
+    clearTab()
     history.replaceState({ entry: history.state?.entry ?? null }, '') // start the steps over
     setSessionId(newSessionId())
     setMessages([{ role: 'assistant', text: GREETING[mode] }])
@@ -360,21 +383,24 @@ function Workspace({
   useHistoryStep<boolean>('cw', cwStarted, setCwStarted, false, {
     allow: (next) => {
       if (next || (!result && messages.length === 1)) return true
-      if (window.confirm(LEAVE_MESSAGE)) void changeMode()
+      if (window.confirm(t(LEAVE_MESSAGE))) void changeMode()
       else stayHere()
       return false
     },
   })
   // Someone who came in through "I want to practice a conversation" sees that label until they
   // start building a plan (then it's the planner, "I'm planning for myself").
-  const modeLabel = !caseworker && launch.view === 'practice' && view === 'practice' && !result ? 'I want to practice' : MODE_LABEL[mode]
+  const modeLabel = t(!caseworker && launch.view === 'practice' && view === 'practice' && !result ? 'I want to practice' : MODE_LABEL[mode])
   const missingFacts = firstCaseworkerTurn ? notMentioned(input) : []
   const caseStep = view === 'practice' ? 4 : result ? 2 : busy || messages.length > 1 ? 1 : 0
-  const backLabel = result ? (caseworker ? 'Back to the plan' : 'Back to my plan') : 'Build my plan'
+  const backLabel = t(result ? (caseworker ? 'Back to the plan' : 'Back to my plan') : 'Build my plan')
   const footer = usage && caseworker ? (
     <p className="usage-meter">
-      This session: {usage.overall.total_tokens.toLocaleString()} tokens of {usage.session_token_cap.toLocaleString()}{' '}
-      · about ${usage.overall.estimated_cost_usd.toFixed(4)}
+      {t('This session: {used} tokens of {cap} · about ${cost}', {
+        used: usage.overall.total_tokens.toLocaleString(),
+        cap: usage.session_token_cap.toLocaleString(),
+        cost: usage.overall.estimated_cost_usd.toFixed(4),
+      })}
     </p>
   ) : null
 
@@ -384,12 +410,12 @@ function Workspace({
         <p className="mode-pill">
           {modeLabel}
           <button type="button" className="link-button" onClick={changeMode}>
-            Change
+            {t('Change')}
           </button>
         </p>
         <div className="toolbar-right">
           <button type="button" className="btn btn-quiet" onClick={clearAll} disabled={busy}>
-            {caseworker ? 'Clear the info' : 'Clear my info'}
+            {t(caseworker ? 'Clear the info' : 'Clear my info')}
           </button>
           {view === 'practice' && (
             <button type="button" className="btn btn-quiet" onClick={() => setView('plan')}>
@@ -448,33 +474,40 @@ function Workspace({
       ) : (
       !cwStarted && !result && messages.length === 1 ? (
         <section className="qa-card cw-intro">
-          <h2 className="qa-question">Let’s check your client’s record.</h2>
+          <h2 className="qa-question">{t('Let’s check your client’s record.')}</h2>
           <p className="qa-intro">
-            Paste your case notes or fill in the template, then submit. Adding notes takes a few minutes, and the record
-            check and 30-day plan take about 2 more minutes. You can clear the info at any time. Ready to get started?
+            {t('Paste your case notes or fill in the template, then submit. Adding notes takes a few minutes, and the record check and 30-day plan take about 2 more minutes. You can clear the info at any time. Ready to get started?')}
           </p>
           <button type="button" className="qa-choice qa-start" onClick={() => setCwStarted(true)}>
-            Let’s get started
+            {t('Let’s get started')}
           </button>
         </section>
       ) : (
       <div className={`workspace ${caseworker ? 'is-caseworker' : 'is-self'}`}>
         <div className="workspace-main">
-          <section className="chat no-print" aria-label="Conversation">
+          <section className="chat no-print" aria-label={t('Conversation')}>
             <ol className="messages">
               {messages.map((m, i) => (
                 <li key={i} className={`msg msg-${m.role}`}>
                   {m.role === 'safety' ? (
                     <div role="alert">
-                      <p>{m.text}</p>
+                      <p>{t(m.text)}</p>
                       <div className="safety-resources">
                         {m.resources.map((r) => (
                           <ResourceCard key={r.id} r={r} plain />
                         ))}
                       </div>
                     </div>
+                  ) : m.role === 'user' && caseworker && m.text.length > 200 ? (
+                    // Long pasted notes shrink to one line once sent; the full text is one tap away.
+                    <details className="notes-sent">
+                      <summary>
+                        {t('Case notes submitted')} <span className="notes-sent-show">{t('Show')}</span>
+                      </summary>
+                      <p>{m.text}</p>
+                    </details>
                   ) : (
-                    <p>{m.text}</p>
+                    <p>{m.role === 'user' ? m.text : t(m.text)}</p>
                   )}
                 </li>
               ))}
@@ -491,7 +524,7 @@ function Workspace({
                 }}
               >
                 <label htmlFor="msg" className="sr-only">
-                  {firstCaseworkerTurn ? 'Case notes' : 'Your message'}
+                  {t(firstCaseworkerTurn ? 'Case notes' : 'Your message')}
                 </label>
                 <textarea
                   id="msg"
@@ -505,16 +538,16 @@ function Workspace({
                   }}
                   rows={firstCaseworkerTurn ? 9 : 2}
                   maxLength={8000}
-                  placeholder={firstCaseworkerTurn ? 'Paste case notes here…' : 'Type your answer…'}
+                  placeholder={t(firstCaseworkerTurn ? 'Paste case notes here…' : 'Type your answer…')}
                   disabled={busy}
                 />
                 <div className="composer-row">
                   <button type="submit" className="btn" disabled={busy || !input.trim()}>
-                    Submit
+                    {t('Submit')}
                   </button>
                   {firstCaseworkerTurn && !input.trim() && (
-                    <button type="button" className="btn btn-quiet" onClick={() => setInput(CASE_NOTES_TEMPLATE)}>
-                      Use the template
+                    <button type="button" className="btn btn-quiet" onClick={() => setInput(caseNotesTemplate(getLang()))}>
+                      {t('Use the template')}
                     </button>
                   )}
                 </div>
@@ -522,9 +555,9 @@ function Workspace({
                   <div className="notes-help">
                     {missingFacts.length > 0 && (
                       <p className="notes-missing" aria-live="polite">
-                        <strong>Not mentioned yet:</strong> {missingFacts.join(' · ')}
+                        <strong>{t('Not mentioned yet:')}</strong> {missingFacts.map((f) => translateGap(f)).join(' · ')}
                         <span className="notes-missing-why">
-                          {' '}Without these, some convictions may come back “Needs review”.
+                          {' '}{t('Without these, some convictions may come back “Needs review”.')}
                         </span>
                       </p>
                     )}

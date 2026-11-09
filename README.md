@@ -45,6 +45,10 @@ Pick **I'm helping a client**, click **Let's get started**, and paste one of the
 2. **Eligible on a future date:** "Client: Hartford. Class D felony larceny 3rd, offense Nov 2013, convicted 2014-01-10; misdemeanor breach of peace, offense April 2020, convicted 2020-05-05. Neither is family violence, sex offense, DUI, or cannabis. Not on probation or parole. No pending cases. All sentences complete. Two children (4 and 9) in DCF foster care; open family court case. In a shelter tonight and this month. Has SS card only. No income. Goals: get kids back, stable housing, a job." (Expected: misdemeanor on or after 2027-05-05, felony on or after 2030-05-05.)
 3. **Needs review:** "Client lives in Waterbury. One felony from around 2016 (drug sale; she doesn't know the class or maximum sentence). Not family violence or a sex offense, not DUI, not cannabis. Finished parole in 2021, not on supervision, no pending cases, all sentences complete. No children. Staying with her sister tonight and this month. Has state ID, birth certificate, and SS card. Works part-time. Goals: clear her record, full-time work, own apartment."
 
+The site works in **English, Español, and Português** (the dropdown at the top of every page). Screens, questions, next steps, and resource tips are translated in `frontend/src/strings/`; the agents are told to write their own text (plan, explanations, coaching) in the chosen language. Answers sent to the agents and the rules engine stay in English underneath, so results are the same in every language. The translations were written with AI help and should be checked by a native speaker before anyone relies on the legal terms.
+
+Her answers, results, and plan stay in **this browser tab only** (sessionStorage), so a reload doesn't lose them; closing the tab or "Clear my info" removes them, and nothing new is kept on the server. **Save or print my plan** saves a copy through the browser's print dialog.
+
 A full run takes 30–60 seconds and costs well under one cent (a test run on November 8, 2026 used about 21,000 tokens, about $0.003). A progress card shows each step as it runs (reading the notes, checking Clean Slate rules, building the plan, double-checking it). Caseworkers see the session's token use and cost at the bottom of the page.
 
 ## Practice Room
@@ -99,7 +103,7 @@ The frontend has its own small tests (plain Node, no extra packages):
 for t in frontend/src/*.test.ts; do node "$t"; done
 ```
 
-They cover the questionnaire (`qaForm`, `qaRules`), results wording (`resultsDisplay`), the 30-day plan layout (`planDisplay`), the case-notes checklist (`caseNotes`), Practice (`practiceDisplay`), and browser history (`historyStep`).
+They cover the questionnaire (`qaForm`, `qaRules`), results wording (`resultsDisplay`), the 30-day plan layout (`planDisplay`), the case-notes checklist (`caseNotes`), Practice (`practiceDisplay`), browser history (`historyStep`), and that every screen string has a Spanish and Portuguese translation (`i18n`).
 
 ## Changing the frontend (developers only)
 

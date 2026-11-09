@@ -1,4 +1,5 @@
 import type { Difficulty, Mode, Resource, ScenarioCard, Usage } from './types'
+import { getLang } from './i18n'
 
 export type StreamEvent = { event: string; data: any }
 
@@ -12,7 +13,7 @@ export async function streamPost(path: string, body: object, onEvent: (e: Stream
   const res = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, lang: getLang() }), // agents write in the site language
   })
   if (!res.ok || !res.body) {
     const detail = await res.json().catch(() => ({}))
@@ -75,7 +76,7 @@ export async function startPractice(body: { session_id: string; mode: Mode; scen
   const res = await fetch('/api/practice/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, lang: getLang() }), // agents write in the site language
   })
   if (!res.ok) throw new Error('Could not start practice. Please try again.')
   return res.json()

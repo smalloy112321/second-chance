@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { flushSync } from 'react-dom'
 
+import { loadTab, saveTab } from './tabStore'
+import { t } from './i18n'
 import { planDates, progressText, repeatedResources, shortUrl, weekDates } from './planDisplay'
 import type { Plan, PlanStep, Resource } from './types'
 
@@ -13,21 +16,21 @@ function PlanContact({ r }: { r: Resource }) {
       <div className="plan-contact-links">
         {r.phone && (
           <a href={`tel:${r.phone.replace(/[^\d+]/g, '')}`}>
-            <span className="label">Call</span> {r.phone}
+            <span className="label">{t('Call')}</span> {r.phone}
           </a>
         )}
         {r.website && (
           <a href={r.website} target="_blank" rel="noreferrer">
-            <span className="label">Website</span> {shortUrl(r.website)} <span aria-hidden="true">↗</span>
+            <span className="label">{t('Website')}</span> {shortUrl(r.website)} <span aria-hidden="true">↗</span>
           </a>
         )}
         {r.address && (
           <span>
-            <span className="label">Address</span> {r.address}
+            <span className="label">{t('Address')}</span> {r.address}
           </span>
         )}
       </div>
-      {r.tip && <p className="plan-contact-tip">{r.tip}</p>}
+      {r.tip && <p className="plan-contact-tip">{t(r.tip)}</p>}
     </div>
   )
 }
@@ -42,24 +45,24 @@ function StepItem({
       <div className="plan-step-body">
         <label htmlFor={id} className="plan-step-action">
           {s.action}
-          {s.priority === 'high' && <span className="plan-tag">Top priority</span>}
+          {s.priority === 'high' && <span className="plan-tag">{t('Top priority')}</span>}
         </label>
         <p className="plan-step-why">{s.why}</p>
         {s.official_links && s.official_links.length > 0 && (
           <div className="step-links">
             {s.official_links.map((l) => (
               <a key={l.url} className={l.primary ? 'btn step-main' : 'step-link'} href={l.url} target="_blank" rel="noreferrer">
-                {l.label} <span aria-hidden="true">↗</span>
+                {t(l.label)} <span aria-hidden="true">↗</span>
               </a>
             ))}
           </div>
         )}
         {r && repeatWeek !== undefined ? (
           <p className="plan-contact-repeat">
-            {r.name}: contact details are in Week {repeatWeek}.
+            {t('{name}: contact details are in Week {week}.', { name: r.name, week: repeatWeek })}
             {r.phone && (
               <>
-                {' '}Call <a href={`tel:${r.phone.replace(/[^\d+]/g, '')}`}>{r.phone}</a>.
+                {' '}{t('Call')} <a href={`tel:${r.phone.replace(/[^\d+]/g, '')}`}>{r.phone}</a>.
               </>
             )}
           </p>
@@ -72,7 +75,9 @@ function StepItem({
 }
 
 export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: string | null) => Resource | undefined }) {
-  const [start] = useState(() => new Date())
+  // The plan's start date is kept with it, so week dates don't shift after a reload.
+  const [start] = useState(() => new Date(loadTab('plan.start', new Date().toISOString())))
+  useEffect(() => saveTab('plan.start', start.toISOString()), [start])
   const steps = plan.weeks.flatMap((w) => w.steps)
   const storageKey = PLAN_DONE_PREFIX + steps.map((s) => s.step_id + s.action.length).join('|')
   const [done, setDone] = useState<Record<string, boolean>>(() => {
@@ -87,25 +92,55 @@ export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: st
   }, [storageKey, done])
   const repeats = useMemo(() => repeatedResources(plan.weeks), [plan.weeks])
   const doneCount = steps.filter((s) => done[s.step_id]).length
+  // Week 1 starts open; later weeks fold down to their heading so the plan isn't one long page.
+  const [open, setOpen] = useState<Record<number, boolean>>(() => loadTab('plan.open', { [plan.weeks[0]?.week ?? 1]: true }))
+  useEffect(() => saveTab('plan.open', open), [open])
+  const [printing, setPrinting] = useState(false)
+  useEffect(() => {
+    const on = () => flushSync(() => setPrinting(true)) // must render before the print dialog captures the page
+    const off = () => setPrinting(false)
+    window.addEventListener('scpp:print-open', on)
+    window.addEventListener('scpp:print-close', off)
+    return () => {
+      window.removeEventListener('scpp:print-open', on)
+      window.removeEventListener('scpp:print-close', off)
+    }
+  }, [])
 
   return (
     <div className="plan">
       <p className="plan-dates">{planDates(start)}</p>
       <p className="plan-summary">{plan.summary}</p>
+      <p className="plan-keep no-print">
+        {t('Your plan stays in this tab until you close it or clear your info. Use “Save or print” to keep a copy.')}
+      </p>
       <div className="plan-progress" aria-live="polite">
         <div className="plan-progress-bar" aria-hidden="true">
           <span style={{ width: `${steps.length ? (doneCount / steps.length) * 100 : 0}%` }} />
         </div>
-        <span>{progressText(doneCount, steps.length)}</span>
+        <span>{progressText(doneCount, steps.length, t)}</span>
       </div>
       <div className="weeks">
         {plan.weeks.map((w) => (
-          <article key={w.week} className="card week">
-            <p className="week-label">
-              Week {w.week} · {weekDates(w.week, start)}
-            </p>
-            <h4>{w.focus}</h4>
-            <ol className="plan-steps">
+          <article key={w.week} className={`card week${open[w.week] || printing ? ' is-open' : ''}`}>
+            <button
+              type="button"
+              className="week-toggle"
+              aria-expanded={!!(open[w.week] || printing)}
+              aria-controls={`week-${w.week}`}
+              onClick={() => setOpen((o) => ({ ...o, [w.week]: !o[w.week] }))}
+            >
+              <span className="week-label">
+                {t('Week {n}', { n: w.week })} · {weekDates(w.week, start)}
+              </span>
+              <span className="week-focus">{w.focus}</span>
+              <span className="week-count">
+                {t('{done} of {total} done', { done: w.steps.filter((s) => done[s.step_id]).length, total: w.steps.length })}
+                <span className="week-chevron" aria-hidden="true">{open[w.week] || printing ? '▴' : '▾'}</span>
+              </span>
+            </button>
+            {(open[w.week] || printing) && (
+            <ol className="plan-steps" id={`week-${w.week}`}>
               {w.steps.map((s) => (
                 <StepItem
                   key={s.step_id}
@@ -117,6 +152,7 @@ export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: st
                 />
               ))}
             </ol>
+            )}
           </article>
         ))}
       </div>

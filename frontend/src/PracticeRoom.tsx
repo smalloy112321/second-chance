@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { fetchScenarios, newSessionId, type ScenarioSuggestion, startPractice, streamPost, type StreamEvent } from './api'
 import { useHistoryStep } from './historyStep'
+import { t } from './i18n'
 import { withoutUnansweredQuestion } from './practiceDisplay'
 import { ResourceCard } from './Results'
 import {
@@ -139,7 +140,7 @@ export default function PracticeRoom({
     } else if (f.type === 'safety') {
       setItems((it) => [...dropPending(it), { kind: 'safety', text: f.message, resources: f.resources }])
     } else {
-      const reply = 'reply' in f ? f.reply : 'Something went wrong.'
+      const reply = 'reply' in f ? f.reply : t('Something went wrong.')
       setItems((it) => [...dropPending(it), { kind: 'note', text: reply }])
     }
   }
@@ -159,7 +160,7 @@ export default function PracticeRoom({
       setPaused(false)
       setStage('chat')
     } catch (e) {
-      setCopied(e instanceof Error ? e.message : 'Could not start practice.')
+      setCopied(e instanceof Error ? e.message : t('Could not start practice.'))
     } finally {
       setBusy(false)
     }
@@ -222,9 +223,9 @@ export default function PracticeRoom({
     const url = `${location.origin}/?practice=${encodeURIComponent(id)}&difficulty=${difficulty}&sid=${newSessionId()}`
     try {
       await navigator.clipboard.writeText(url)
-      setCopied(`Link copied. Send it to your client: ${url}`)
+      setCopied(t('Link copied. Send it to your client: {url}', { url }))
     } catch {
-      setCopied(`Copy this link and send it to your client: ${url}`)
+      setCopied(t('Copy this link and send it to your client: {url}', { url }))
     }
   }
 
@@ -234,16 +235,16 @@ export default function PracticeRoom({
     return (
       <section className="practice" aria-labelledby="practice-title">
         <div className="practice-head">
-          <h1 id="practice-title">Practice a conversation</h1>
+          <h1 id="practice-title">{t('Practice a conversation')}</h1>
         </div>
         <p className="lead">
           {caseworker
-            ? 'Pick a scenario to rehearse with your client, or send them a link to practice on their own.'
-            : 'Rehearse a hard conversation in a safe place. A coach gives you feedback after each answer.'}
+            ? t('Pick a scenario to rehearse with your client, or send them a link to practice on their own.')
+            : t('Rehearse a hard conversation in a safe place. A coach gives you feedback after each answer.')}
         </p>
 
-        <h2 className="choose-prompt">1. Choose a conversation</h2>
-        <div className="scenario-cards" role="radiogroup" aria-label="Scenario">
+        <h2 className="choose-prompt">{t('1. Choose a conversation')}</h2>
+        <div className="scenario-cards" role="radiogroup" aria-label={t('Scenario')}>
           {scenarios.map((s) => (
             <div key={s.id} className={`scenario-card ${scenarioId === s.id ? 'is-selected' : ''}`}>
               <button
@@ -253,27 +254,27 @@ export default function PracticeRoom({
                 className="scenario-pick"
                 onClick={() => setScenarioId(s.id)}
               >
-                {suggested?.id === s.id && <span className="scenario-suggested">Suggested for you</span>}
-                <span className="scenario-title">{s.title}</span>
-                <span className="scenario-desc">{s.description}</span>
-                <span className="scenario-who">You'll talk with {s.character}</span>
+                {suggested?.id === s.id && <span className="scenario-suggested">{t('Suggested for you')}</span>}
+                <span className="scenario-title">{t(s.title)}</span>
+                <span className="scenario-desc">{t(s.description)}</span>
+                <span className="scenario-who">{t("You'll talk with {name}", { name: s.character })}</span>
                 {suggested?.id === s.id && (
                   <span className="scenario-reason">
-                    {caseworker ? CASEWORKER_REASON[suggested.id] ?? suggested.reason : suggested.reason}
+                    {t(caseworker ? CASEWORKER_REASON[suggested.id] ?? suggested.reason : suggested.reason)}
                   </span>
                 )}
               </button>
               {caseworker && (
                 <button type="button" className="link-button" onClick={() => void copyLink(s.id)}>
-                  Send practice link to client
+                  {t('Send practice link to client')}
                 </button>
               )}
             </div>
           ))}
         </div>
 
-        <h2 className="choose-prompt">2. How should they act?</h2>
-        <div className="difficulty" role="radiogroup" aria-label="Difficulty">
+        <h2 className="choose-prompt">{t('2. How should they act?')}</h2>
+        <div className="difficulty" role="radiogroup" aria-label={t('Difficulty')}>
           {DIFFICULTIES.map((d) => (
             <button
               key={d.id}
@@ -283,8 +284,8 @@ export default function PracticeRoom({
               className={`difficulty-btn ${difficulty === d.id ? 'is-selected' : ''}`}
               onClick={() => setDifficulty(d.id)}
             >
-              <span>{d.label}</span>
-              <small>{d.hint}</small>
+              <span>{t(d.label)}</span>
+              <small>{t(d.hint)}</small>
             </button>
           ))}
         </div>
@@ -295,7 +296,7 @@ export default function PracticeRoom({
           </p>
         )}
         <button type="button" className="btn btn-big" disabled={!scenarioId || busy} onClick={() => void begin()}>
-          {busy ? 'Starting…' : 'Start practice'}
+          {t(busy ? 'Starting…' : 'Start practice')}
         </button>
       </section>
     )
@@ -308,13 +309,14 @@ export default function PracticeRoom({
       <section className="practice workspace-main" aria-labelledby="practice-chat-title">
         <div className="practice-head">
           <div>
-            <h1 id="practice-chat-title">{scenario?.title ?? 'Practice'}</h1>
+            <h1 id="practice-chat-title">{t(scenario?.title ?? 'Practice')}</h1>
             <p className="practice-meta">
-              {DIFFICULTIES.find((d) => d.id === difficulty)?.label} · Answer {Math.min(turn + (finished ? 0 : 1), maxTurns)} of {maxTurns}
+              {t(DIFFICULTIES.find((d) => d.id === difficulty)?.label ?? '')} ·{' '}
+              {t('Answer {n} of {total}', { n: Math.min(turn + (finished ? 0 : 1), maxTurns), total: maxTurns })}
             </p>
           </div>
           <button type="button" className="btn btn-quiet" onClick={() => setStage('choose')} disabled={busy}>
-            Change scenario
+            {t('Change scenario')}
           </button>
         </div>
 
@@ -324,7 +326,7 @@ export default function PracticeRoom({
               return (
                 <li key={i} className="pc pc-partner">
                   <span className="pc-name">{x.name}</span>
-                  <p>{x.text}</p>
+                  <p>{t(x.text)}</p>
                 </li>
               )
             if (x.kind === 'me')
@@ -333,7 +335,7 @@ export default function PracticeRoom({
                   <p className="pc-bubble">{x.text}</p>
                   {x.pending && (
                     <p className="pc-pending">
-                      <span className="spinner" aria-hidden="true" /> Coach is watching…
+                      <span className="spinner" aria-hidden="true" /> {t('Coach is watching…')}
                     </p>
                   )}
                   {x.coach && <Coach card={x.coach} open={i >= items.length - 2} />}
@@ -343,7 +345,7 @@ export default function PracticeRoom({
               return (
                 <li key={i} className="msg msg-safety" role="alert">
                   <p>
-                    <strong>{x.text}</strong>
+                    <strong>{t(x.text)}</strong>
                   </p>
                   <div className="safety-resources">
                     {x.resources.map((r) => (
@@ -363,14 +365,14 @@ export default function PracticeRoom({
         {paused && !finished && (
           <div className="pause-banner" role="status">
             <p>
-              <strong>Paused.</strong> Take your time.
+              <strong>{t('Paused.')}</strong> {t('Take your time.')}
             </p>
             <div className="btn-row">
               <button type="button" className="btn" onClick={() => setPaused(false)}>
-                Resume
+                {t('Resume')}
               </button>
               <button type="button" className="btn btn-quiet" onClick={endNow} disabled={busy}>
-                End and see feedback
+                {t('End and see feedback')}
               </button>
             </div>
           </div>
@@ -396,7 +398,7 @@ export default function PracticeRoom({
               }}
             >
               <label htmlFor="practice-msg" className="sr-only">
-                Your answer
+                {t('Your answer')}
               </label>
               <textarea
                 id="practice-msg"
@@ -410,7 +412,7 @@ export default function PracticeRoom({
                 }}
                 rows={3}
                 maxLength={4000}
-                placeholder={listening ? 'Listening… speak your answer' : 'Type or say your answer…'}
+                placeholder={t(listening ? 'Listening… speak your answer' : 'Type or say your answer…')}
                 disabled={busy}
               />
               <div className="composer-actions">
@@ -422,11 +424,11 @@ export default function PracticeRoom({
                     aria-pressed={listening}
                     disabled={busy}
                   >
-                    {listening ? '● Stop' : '🎤 Speak'}
+                    {listening ? `● ${t('Stop')}` : `🎤 ${t('Speak')}`}
                   </button>
                 )}
                 <button type="submit" className="btn" disabled={busy || !input.trim()}>
-                  Send
+                  {t('Send')}
                 </button>
               </div>
             </form>
@@ -436,10 +438,10 @@ export default function PracticeRoom({
         {!finished && (
           <div className="btn-row practice-controls">
             <button type="button" className="btn btn-quiet" onClick={() => setPaused(true)} disabled={busy || paused}>
-              Pause
+              {t('Pause')}
             </button>
             <button type="button" className="btn btn-quiet" onClick={endNow} disabled={busy || turn === 0}>
-              End and see feedback
+              {t('End and see feedback')}
             </button>
           </div>
         )}
@@ -453,7 +455,7 @@ export default function PracticeRoom({
 
 function Dots({ value }: { value: number }) {
   return (
-    <span className="dots" aria-label={`${value} of 3`}>
+    <span className="dots" aria-label={t('{n} of 3', { n: value })}>
       {[1, 2, 3].map((n) => (
         <span key={n} className={`dot ${n <= value ? 'on' : ''}`} />
       ))}
@@ -467,38 +469,37 @@ function Coach({ card, open }: { card: CoachCard; open: boolean }) {
   return (
     <details className="coach" open={open}>
       <summary>
-        Coach feedback <span className="coach-total">{total}/15</span>
+        {t('Coach feedback')} <span className="coach-total">{total}/15</span>
       </summary>
       <ul className="skills">
         {card.skills.map((s) => (
           <li key={s}>
-            <span>{SKILL_LABEL[s] ?? s}</span>
+            <span>{t(SKILL_LABEL[s] ?? s)}</span>
             <Dots value={card.scores[s] ?? 0} />
           </li>
         ))}
       </ul>
       <p>
-        <strong>What worked:</strong> {card.strength}
+        <strong>{t('What worked:')}</strong> {card.strength}
       </p>
       <p>
-        <strong>Try this:</strong> {card.tip}
+        <strong>{t('Try this:')}</strong> {card.tip}
       </p>
       <blockquote className="try-saying">
-        <span className="try-label">Try saying…</span>
+        <span className="try-label">{t('Try saying…')}</span>
         {card.try_saying}
       </blockquote>
       {replaced && (
         <p className="guard-note">
-          Safety check: we replaced a suggested answer that said you have no record, because your Clean Slate result
-          doesn't support that yet.
+          {t("Safety check: we replaced a suggested answer that said you have no record, because your Clean Slate result doesn't support that yet.")}
         </p>
       )}
       {card.legal_fact && (
         <div className="legal-fact">
-          <strong>Good to know</strong>
-          <p>{card.legal_fact.text}</p>
-          <a href={card.legal_fact.source} target="_blank" rel="noreferrer" aria-label="Source for this legal fact (opens in a new tab)">
-            Source
+          <strong>{t('Good to know')}</strong>
+          <p>{t(card.legal_fact.text)}</p>
+          <a href={card.legal_fact.source} target="_blank" rel="noreferrer" aria-label={t('Source for this legal fact (opens in a new tab)')}>
+            {t('Source')}
           </a>
         </div>
       )}
@@ -525,19 +526,19 @@ function EndScreen({
 }) {
   return (
     <section className="card end-card" aria-labelledby="end-title">
-      <h2 id="end-title">{caseworker ? 'Session summary' : 'Nice work. Here is how it went.'}</h2>
+      <h2 id="end-title">{t(caseworker ? 'Session summary' : 'Nice work. Here is how it went.')}</h2>
       {summary ? (
         <>
           <p className="end-summary">{summary.summary}</p>
           {summary.best_quote && (
             <figure className="best-quote">
               <blockquote>“{summary.best_quote}”</blockquote>
-              <figcaption>{caseworker ? 'Strongest moment' : 'Your strongest moment'}</figcaption>
+              <figcaption>{t(caseworker ? 'Strongest moment' : 'Your strongest moment')}</figcaption>
             </figure>
           )}
-          <div className="score-compare" aria-label="First and last answer scores">
+          <div className="score-compare" aria-label={t('First and last answer scores')}>
             <div>
-              <span className="score-label">First answer</span>
+              <span className="score-label">{t('First answer')}</span>
               <span className="score-num">
                 {summary.score_first}/{summary.max_score}
               </span>
@@ -546,7 +547,7 @@ function EndScreen({
               →
             </span>
             <div>
-              <span className="score-label">Last answer</span>
+              <span className="score-label">{t('Last answer')}</span>
               <span className="score-num">
                 {summary.score_last}/{summary.max_score}
               </span>
@@ -554,19 +555,19 @@ function EndScreen({
           </div>
         </>
       ) : (
-        <p>Answer at least one question to get feedback.</p>
+        <p>{t('Answer at least one question to get feedback.')}</p>
       )}
       <div className="btn-row">
         <button type="button" className="btn" onClick={onAgain}>
-          Practice again
+          {t('Practice again')}
         </button>
         {onHarder && (
           <button type="button" className="btn btn-quiet" onClick={onHarder}>
-            Try a harder version
+            {t('Try a harder version')}
           </button>
         )}
         <button type="button" className="btn btn-quiet" onClick={onChoose}>
-          Pick another scenario
+          {t('Pick another scenario')}
         </button>
         {onBack && (
           <button type="button" className="btn btn-quiet" onClick={onBack}>

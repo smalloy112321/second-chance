@@ -130,28 +130,44 @@ export function isAnswered(id: QuestionId, a: Answers): boolean {
   }
 }
 
-/** A short answer for the "Check your answers" page. */
-export function summary(id: QuestionId, a: Answers): string {
-  if (!isAnswered(id, a)) return 'Skipped'
+/** A short answer for the "Check your answers" page. `tr` translates the fixed words (the page passes
+ * the site's translator; tests use the English default). */
+type Tr = (english: string, vars?: Record<string, string | number>) => string
+const same: Tr = (english, vars) => {
+  let out = english
+  if (vars) for (const [k, v] of Object.entries(vars)) out = out.split(`{${k}}`).join(String(v))
+  return out
+}
+export function summary(id: QuestionId, a: Answers, tr: Tr = same): string {
+  if (!isAnswered(id, a)) return tr('Skipped')
   switch (id) {
     case 'name': return a.firstName.trim()
     case 'where': return `${a.town.trim()}, ${a.state}`
     case 'convictions':
       return a.convictions
-        .map((c) => `${c.type} (${c.level === 'Felony' ? `felony, ${c.felonyClass === 'Unclassified' || c.felonyClass === NOT_SURE ? c.felonyClass.toLowerCase() : c.felonyClass}` : c.level.toLowerCase()}, convicted ${c.yearConvicted === NOT_SURE ? 'year not sure' : c.yearConvicted})`)
+        .map((c) => {
+          const level = c.level === 'Felony'
+            ? `${tr('felony')}, ${c.felonyClass === 'Unclassified' || c.felonyClass === NOT_SURE ? tr(c.felonyClass).toLowerCase() : tr(c.felonyClass)}`
+            : tr(c.level).toLowerCase()
+          const year = c.yearConvicted === NOT_SURE ? tr('year not sure') : c.yearConvicted
+          return `${tr(c.type)} (${level}, ${tr('convicted {year}', { year })})`
+        })
         .join('; ')
-    case 'familyViolence': return a.familyViolence
-    case 'sexOffense': return a.sexOffense
-    case 'probation': return a.probation
-    case 'pending': return a.pending
-    case 'finished': return a.finished
-    case 'kids': return a.kids === 'Yes' ? `Yes: ${a.kidsCount}, ${a.kidsWith.toLowerCase()}, family court case: ${a.familyCourt.toLowerCase()}` : a.kids
-    case 'housing': return `Tonight: ${a.housingTonight}. This month: ${a.housingMonth}`
-    case 'ids': return a.ids.join(', ')
+    case 'familyViolence': return tr(a.familyViolence)
+    case 'sexOffense': return tr(a.sexOffense)
+    case 'probation': return tr(a.probation)
+    case 'pending': return tr(a.pending)
+    case 'finished': return tr(a.finished)
+    case 'kids':
+      return a.kids === 'Yes'
+        ? tr('Yes: {count}, {with}, family court case: {court}', { count: tr(a.kidsCount), with: tr(a.kidsWith).toLowerCase(), court: tr(a.familyCourt).toLowerCase() })
+        : tr(a.kids)
+    case 'housing': return tr('Tonight: {tonight}. This month: {month}', { tonight: tr(a.housingTonight), month: tr(a.housingMonth) })
+    case 'ids': return a.ids.map((x) => tr(x)).join(', ')
     case 'work':
       return a.working === 'Yes'
-        ? (filled(a.workWhere) ? `Yes, at ${a.workWhere.trim()}` : 'Yes')
-        : (filled(a.workWant) ? `No. Wants to work: ${a.workWant.trim()}` : 'No')
+        ? (filled(a.workWhere) ? tr('Yes, at {place}', { place: a.workWhere.trim() }) : tr('Yes'))
+        : (filled(a.workWant) ? tr('No. Wants to work: {work}', { work: a.workWant.trim() }) : tr('No'))
     case 'goals': return a.goals.filter(filled).map((g) => g.trim()).join('; ')
   }
 }

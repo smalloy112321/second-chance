@@ -11,7 +11,11 @@ export type StepLike = { step_id: string; resource_id: string | null }
 export type WeekLike = { week: number; steps: StepLike[] }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const fmt = (d: Date) => `${MONTHS[d.getMonth()]} ${d.getDate()}`
+let locale = 'en'
+/** Month names follow the site language ("Nov 8", "8 nov", "8 de nov."). */
+export const setDateLocale = (l: string) => { locale = l }
+const fmt = (d: Date) =>
+  locale === 'en' ? `${MONTHS[d.getMonth()]} ${d.getDate()}` : d.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
 
 /** "Nov 8 – Nov 14" for week 1 of a plan made on Nov 8. Week 4 runs to day 30. */
@@ -50,19 +54,26 @@ export function repeatedResources(weeks: WeekLike[]): Record<string, number> {
 }
 
 /** "Week 4, step 2 (Search for food service openings…)" for a step id like "w4s2". */
-export function stepLabel(weeks: { week: number; steps: { step_id: string; action: string }[] }[], stepId: string | null): string {
+export type Tr = (english: string, vars?: Record<string, string | number>) => string
+const same: Tr = (english, vars) => {
+  let out = english
+  if (vars) for (const [k, v] of Object.entries(vars)) out = out.split(`{${k}}`).join(String(v))
+  return out
+}
+
+export function stepLabel(weeks: { week: number; steps: { step_id: string; action: string }[] }[], stepId: string | null, tr: Tr = same): string {
   if (!stepId) return ''
   for (const w of weeks) {
     const i = w.steps.findIndex((s) => s.step_id === stepId)
     if (i >= 0) {
       const a = w.steps[i].action
-      return `Week ${w.week}, step ${i + 1} (${a.length > 60 ? a.slice(0, 57).trimEnd() + '…' : a})`
+      return tr('Week {week}, step {n} ({action})', { week: w.week, n: i + 1, action: a.length > 60 ? a.slice(0, 57).trimEnd() + '…' : a })
     }
   }
   return ''
 }
 
 /** "3 of 10 steps done" */
-export function progressText(done: number, total: number): string {
-  return `${done} of ${total} ${total === 1 ? 'step' : 'steps'} done`
+export function progressText(done: number, total: number, tr: Tr = same): string {
+  return total === 1 ? tr('{done} of {total} step done', { done, total }) : tr('{done} of {total} steps done', { done, total })
 }

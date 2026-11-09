@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { CASE_NOTES_TEMPLATE, notMentioned } from './caseNotes.ts'
+import { CASE_NOTES_TEMPLATE, CASE_NOTES_TEMPLATE_PT, notMentioned } from './caseNotes.ts'
 
 // The notes from the live caseworker run (Nov 8, 2026) that came back "Needs review" for every conviction.
 const DENISE = `Client: Denise R., 34, New Haven. Released from York CI in March 2025.
@@ -41,4 +41,14 @@ test('template lines are checked one conviction at a time', () => {
     .replace(/^Conviction 2:.*$/m, 'Conviction 2: drug sale, 2016')
   const gaps = notMentioned(notes).filter((g) => g.startsWith('Conviction'))
   assert.deepEqual(gaps, ['Conviction 2: misdemeanor or felony, year it happened and year convicted (or say they were the same year)'])
+})
+
+test('Spanish and Portuguese notes are checked too', () => {
+  const es = `Clienta: Ana, Hartford.
+Condena 1: robo en tienda, delito menor, pasó en 2012, condenada en 2012, no fue DUI ni cannabis.
+Condena 2: venta de drogas, 2016
+Sin violencia familiar ni delito sexual. No está en libertad a prueba ni libertad condicional. No tiene cargos pendientes. Terminó toda su sentencia.
+Dos hijos que viven con su madre. Se queda con una amiga. Tiene acta de nacimiento. Metas: conseguir ID.`
+  assert.deepEqual(notMentioned(es), ['Conviction 2: misdemeanor or felony, year it happened and year convicted (or say they were the same year)'])
+  assert.deepEqual(notMentioned(CASE_NOTES_TEMPLATE_PT), [])
 })

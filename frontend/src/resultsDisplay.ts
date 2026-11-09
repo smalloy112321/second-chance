@@ -47,17 +47,25 @@ export function waitPassed(c: RulesConvictionLike, today: Date = new Date()): bo
   return WAITING.has(c.status) && !!c.eligible_on && c.eligible_on <= todayIso(today)
 }
 
+/** Translator (the page passes the site's; tests use English). */
+export type Tr = (english: string, vars?: Record<string, string | number>) => string
+const same: Tr = (english, vars) => {
+  let out = english
+  if (vars) for (const [k, v] of Object.entries(vars)) out = out.split(`{${k}}`).join(String(v))
+  return out
+}
+
 /** The same first line under every conviction. */
-export function convictedLine(c: RulesConvictionLike): string {
+export function convictedLine(c: RulesConvictionLike, tr: Tr = same): string {
   const y = year(c.conviction_date)
-  return y ? `Convicted: ${y}` : 'Convicted: year not sure'
+  return y ? tr('Convicted: {year}', { year: y }) : tr('Convicted: year not sure')
 }
 
 /** A second line, only when erasure is still in the future (null otherwise). */
-export function erasureLine(c: RulesConvictionLike, today: Date = new Date()): string | null {
+export function erasureLine(c: RulesConvictionLike, today: Date = new Date(), tr: Tr = same): string | null {
   const future = !!c.eligible_on && c.eligible_on > todayIso(today)
   if (!future) return null
-  if (c.status === 'eligible_on' || WAITING.has(c.status)) return `Expected to be erased: around ${year(c.eligible_on)}`
+  if (c.status === 'eligible_on' || WAITING.has(c.status)) return tr('Expected to be erased: around {year}', { year: year(c.eligible_on) ?? '' })
   return null
 }
 

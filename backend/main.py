@@ -38,10 +38,14 @@ Mode = Literal["self_serve", "caseworker"]
 SessionId = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
 
 
+Lang = Literal["en", "es", "pt"]
+
+
 class ChatRequest(BaseModel):
     session_id: str = SessionId
     mode: Mode
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
+    lang: Lang = "en"
 
 
 class PracticeStartRequest(BaseModel):
@@ -49,17 +53,20 @@ class PracticeStartRequest(BaseModel):
     mode: Mode = "self_serve"
     scenario_id: str
     difficulty: Literal["friendly", "neutral", "skeptical"] = "friendly"
+    lang: Lang = "en"
 
 
 class PracticeTurnRequest(BaseModel):
     session_id: str = SessionId
     mode: Mode = "self_serve"
     message: str = Field(min_length=1, max_length=4000)
+    lang: Lang = "en"
 
 
 class PracticeEndRequest(BaseModel):
     session_id: str = SessionId
     mode: Mode = "self_serve"
+    lang: Lang = "en"
 
 
 class HelloRequest(BaseModel):
@@ -132,7 +139,7 @@ async def chat(req: ChatRequest) -> dict:
         events.append({"event": event, "data": data})
 
     try:
-        final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=collect)
+        final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=collect, lang=req.lang)
     except Exception as exc:
         print(f"[chat] {type(exc).__name__}: {str(exc)[:300]}")
         raise HTTPException(status_code=502, detail=GENERIC_ERROR)
@@ -180,7 +187,7 @@ def _stream(label: str, work) -> StreamingResponse:
 async def chat_stream(req: ChatRequest) -> StreamingResponse:
     """Server-sent events: agent_started, agent_done, tool_called, verifier_issue,
     safety_block, error, and finally final."""
-    return _stream("chat/stream", lambda emit: orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit))
+    return _stream("chat/stream", lambda emit: orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit, lang=req.lang))
 
 
 # ---- Practice room -----------------------------------------------------------------------
@@ -204,7 +211,7 @@ def practice_scenarios(session_id: str | None = None) -> dict:
 def practice_start(req: PracticeStartRequest) -> dict:
     if req.scenario_id not in practice.scenarios():
         raise HTTPException(status_code=404, detail="Unknown scenario.")
-    return orchestrator.start_practice(req.session_id, req.mode, req.scenario_id, req.difficulty)
+    return orchestrator.start_practice(req.session_id, req.mode, req.scenario_id, req.difficulty, lang=req.lang)
 
 
 @app.post("/api/practice/turn")
@@ -216,7 +223,7 @@ async def practice_turn(req: PracticeTurnRequest) -> dict:
         events.append({"event": event, "data": data})
 
     try:
-        final = await orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=collect)
+        final = await orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=collect, lang=req.lang)
     except Exception as exc:
         print(f"[practice/turn] {type(exc).__name__}: {str(exc)[:300]}")
         raise HTTPException(status_code=502, detail=GENERIC_ERROR)
@@ -225,12 +232,12 @@ async def practice_turn(req: PracticeTurnRequest) -> dict:
 
 @app.post("/api/practice/turn/stream")
 async def practice_turn_stream(req: PracticeTurnRequest) -> StreamingResponse:
-    return _stream("practice/stream", lambda emit: orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=emit))
+    return _stream("practice/stream", lambda emit: orchestrator.practice_turn(req.session_id, req.mode, req.message, emit=emit, lang=req.lang))
 
 
 @app.post("/api/practice/end/stream")
 async def practice_end_stream(req: PracticeEndRequest) -> StreamingResponse:
-    return _stream("practice/end", lambda emit: orchestrator.end_practice(req.session_id, req.mode, emit=emit))
+    return _stream("practice/end", lambda emit: orchestrator.end_practice(req.session_id, req.mode, emit=emit, lang=req.lang))
 
 
 @app.delete("/api/session/{session_id}")

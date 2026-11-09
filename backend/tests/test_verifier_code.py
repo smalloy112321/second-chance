@@ -56,3 +56,11 @@ def test_cautious_disclosure_wording_not_flagged():
     # ...but the same words without the negation are still caught.
     plan = plan_with(step(why="The conviction was erased, so she can answer no."))
     assert code_check(plan, VALID, "unsure_ask_legal_aid")[0].check == "disclosure"
+
+
+def test_spanish_and_portuguese_disclosure_is_flagged_but_cautious_wording_is_not():
+    from agents.verifier import unsafe_disclosure
+    assert unsafe_disclosure("Puedes responder que no cuando te pregunten por condenas.")
+    assert unsafe_disclosure("Seu registro foi apagado, então pode dizer não.")
+    assert not unsafe_disclosure("No respondas que no hasta que el récord oficial lo confirme.")
+    assert not unsafe_disclosure("Não responda não até a verificação oficial confirmar.")

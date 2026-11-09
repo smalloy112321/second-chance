@@ -29,12 +29,22 @@ URL_RE = re.compile(r"https?://|www\.|\b[\w-]+\.(?:org|com|gov|net)\b", re.I)
 EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]+\b")
 DISCLOSURE_RE = re.compile(
     r"\b(?:answer|say|check|mark|put|write)\s+[\"“']?no[\"”']?\b"
-    r"|\brecord\s+(?:is|has\s+been|was)\s+(?:erased|cleared|sealed|clean)\b",
+    r"|\brecord\s+(?:is|has\s+been|was)\s+(?:erased|cleared|sealed|clean)\b"
+    # Spanish and Portuguese (the site's other languages)
+    r"|\b(?:responder|contestar|decir|marcar|escribir|poner)\s+(?:que\s+)?[\"“']?no[\"”']?(?!\w)"
+    r"|\b(?:responder|dizer|marcar|escrever|colocar)\s+(?:que\s+)?[\"“']?n[ãa]o[\"”']?(?!\w)"
+    r"|\b(?:récord|registro|historial|antecedentes|ficha)\s+(?:está|esta|ha\s+sido|fue|foi)\s+"
+    r"(?:borrad[oa]s?|eliminad[oa]s?|limpi[oa]s?|limp[oa]s?|sellad[oa]s?|apagad[oa]s?)\b",
     re.I,
 )
 # Cautious wording ("she should NOT assume she can answer no") is what we want, so a match is
 # ignored when a negation comes earlier in the same clause. The AI verifier still reads meaning.
-NEGATION_RE = re.compile(r"\bnot\b|\bnever\b|n't\b|\bcannot\b|\bavoid\b|\bunless\b|\buntil\b|\bwithout\b", re.I)
+NEGATION_RE = re.compile(
+    r"\bnot\b|\bnever\b|n't\b|\bcannot\b|\bavoid\b|\bunless\b|\buntil\b|\bwithout\b"
+    r"|\bno\s+(?=\w)(?!sea\b)|\bnunca\b|\bsin\b|\bhasta\b|\ba\s+menos\s+que\b|\bevite\b"   # Spanish
+    r"|\bnão\b|\bsem\b|\baté\b|\bevite\b",                                         # Portuguese
+    re.I,
+)
 
 
 def unsafe_disclosure(text: str) -> bool:

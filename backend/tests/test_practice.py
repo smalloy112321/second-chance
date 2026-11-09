@@ -145,3 +145,10 @@ def test_pause_word_needs_no_ai_call():
     orchestrator.start_practice("practice-test-0001", "self_serve", "landlord", "friendly")
     out = asyncio.run(orchestrator.practice_turn("practice-test-0001", "self_serve", "pause", model=FunctionModel(must_not_call)))
     assert out["type"] == "paused"
+
+
+def test_record_denial_is_caught_in_spanish_and_portuguese():
+    from agents.practice import contains_denial
+    assert contains_denial("No tengo antecedentes, nunca he sido condenada.")
+    assert contains_denial("Não tenho antecedentes.")
+    assert not contains_denial("Tengo una condena de 2014 y cumplí mi sentencia.")

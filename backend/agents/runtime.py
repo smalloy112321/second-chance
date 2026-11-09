@@ -52,6 +52,25 @@ class Ctx:
     emit: Emit = _no_emit
     model: Any = None  # tests pass a fake model; None = gpt-6-luna through Portkey
     tool_calls: list[dict] = field(default_factory=list)
+    lang: str = "en"  # "en", "es", or "pt": the language the user reads the site in
+
+
+LANGUAGE_NAMES = {
+    "es": "Spanish (use the respectful \"usted\" form, as the rest of the site does)",
+    "pt": "Brazilian Portuguese (use \"você\", as the rest of the site does)",
+}
+
+
+def language_note(lang: str) -> str:
+    """Added to every agent's instructions when the site is not in English."""
+    name = LANGUAGE_NAMES.get(lang)
+    if not name:
+        return ""
+    return (
+        f"\n\n## Language\nWrite every sentence the user will read in {name}, in plain, warm, everyday words. "
+        "Keep program and organization names, form numbers (like DPS-0846-C), phone numbers, and every "
+        "JSON field name, id, and code exactly as given, in English."
+    )
 
 
 _model = None
@@ -83,7 +102,7 @@ async def run_llm(
     try:
         result = await agent.run(
             user_prompt,
-            instructions=instructions,
+            instructions=instructions + language_note(ctx.lang),
             model=get_model(ctx),
             deps=deps,
             message_history=message_history,

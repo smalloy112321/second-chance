@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { currentStep, stayHere, useHistoryStep } from './historyStep'
+import { loadTab, saveTab } from './tabStore'
+import { t } from './i18n'
 
 import {
   CONVICTION_TYPES, FELONY_CLASSES, HOUSING, HOUSING_MONTH, IDS, KIDS_COUNT, KIDS_WITH, LEVELS, QUESTIONS, STATES, YEARS,
@@ -35,13 +37,13 @@ export function WorkingCard({ agents, client = false }: { agents: Record<string,
   return (
     <section className="qa-card qa-wait" aria-live="polite">
       <span className="spinner qa-spinner" aria-hidden="true" />
-      <h2 className="qa-question">{heading}</h2>
+      <h2 className="qa-question">{t(heading)}</h2>
       <ul className="qa-checklist">
         {steps.map(([agent, label]) => {
           const st = agents[agent]?.status
           return (
             <li key={agent} className={st === 'done' ? 'is-done' : st === 'running' ? 'is-current' : ''}>
-              <span aria-hidden="true">{st === 'done' ? '✓' : st === 'running' ? '●' : '○'}</span> {label}
+              <span aria-hidden="true">{st === 'done' ? '✓' : st === 'running' ? '●' : '○'}</span> {t(label)}
             </li>
           )
         })}
@@ -53,13 +55,13 @@ export function WorkingCard({ agents, client = false }: { agents: Record<string,
 /** The five-step progress bar shown across the self-serve flow (also on the Practice screen). */
 export function ProgressSteps({ current, aboutFill = 100, labels = STEPS }: { current: number; aboutFill?: number; labels?: readonly string[] }) {
   return (
-    <ol className="qa-steps" aria-label="Your progress">
+    <ol className="qa-steps" aria-label={t('Your progress')}>
       {labels.map((s, i) => (
         <li key={s} className={i < current ? 'is-done' : i === current ? 'is-current' : ''} aria-current={i === current ? 'step' : undefined}>
           <span className="qa-bar" aria-hidden="true">
             {i === 0 && <span className="qa-bar-fill" style={{ width: `${aboutFill}%` }} />}
           </span>
-          {s}
+          {t(s)}
         </li>
       ))}
     </ol>
@@ -96,7 +98,7 @@ function Choices({ options, value, onPick }: { options: string[]; value: string;
           onClick={() => onPick(o)}
         >
           {value === o && <span aria-hidden="true">✓ </span>}
-          {o}
+          {t(o)}
         </button>
       ))}
     </div>
@@ -108,14 +110,14 @@ function Select({ label, value, options, onChange, placeholder = 'Choose one' }:
 }) {
   return (
     <label className="qa-field">
-      <span>{label}</span>
+      <span>{t(label)}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="" disabled>
-          {placeholder}
+          {t(placeholder)}
         </option>
         {options.map((o) => (
           <option key={o} value={o}>
-            {o}
+            {/^\d{4}$/.test(o) ? o : t(o)}
           </option>
         ))}
       </select>
@@ -126,16 +128,20 @@ function Select({ label, value, options, onChange, placeholder = 'Choose one' }:
 function Text({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="qa-field">
-      <span>{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} maxLength={200} autoComplete="off" />
+      <span>{t(label)}</span>
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder && t(placeholder)} maxLength={200} autoComplete="off" />
     </label>
   )
 }
 
 export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, onLeave, renderResults }: Props) {
   // A screen that comes back (e.g. after Practice) picks up where it was.
-  const [stage, setStage] = useState<Stage>(() => currentStep<Stage>('stage', 'intro'))
-  const [a, setA] = useState<Answers>(emptyAnswers)
+  const [stage, setStage] = useState<Stage>(() => {
+    const s = currentStep<Stage>('stage', 'intro')
+    return s === 'submitted' && !finished && !busy ? 'review' : s // reloaded mid-check: let her submit again
+  })
+  const [a, setA] = useState<Answers>(() => loadTab('self.answers', emptyAnswers()))
+  useEffect(() => saveTab('self.answers', a), [a])
   const [followUp, setFollowUp] = useState('')
   const [resultView, setResultView] = useState<'slate' | 'plan'>(() => currentStep<'slate' | 'plan'>('results', 'slate'))
   // Browser Back/Forward: question to question, review, results <-> plan. Sending the answers
@@ -144,7 +150,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
     replace: (v) => v === 'submitted',
     allow: (next, current) => {
       if (current !== 'submitted' || next === 'submitted') return true
-      if (window.confirm('Go back to the start? Your results and 30-day plan will be cleared.')) onLeave?.()
+      if (window.confirm(t('Go back to the start? Your results and 30-day plan will be cleared.'))) onLeave?.()
       else stayHere()
       return false
     },
@@ -194,7 +200,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
             <Select label="State" value={a.state} options={STATES} onChange={(v) => set('state', v)} placeholder="Choose your state" />
             {a.state && a.state !== 'Connecticut' && (
               <p className="qa-warn" role="status">
-                This planner covers Connecticut records and Connecticut services. You can keep going if your record is from Connecticut.
+                {t('This planner covers Connecticut records and Connecticut services. You can keep going if your record is from Connecticut.')}
               </p>
             )}
           </>
@@ -205,10 +211,10 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
             {a.convictions.map((c, i) => (
               <fieldset key={i} className="qa-group">
                 <legend>
-                  Conviction {i + 1}
+                  {t('Conviction {n}', { n: i + 1 })}
                   {a.convictions.length > 1 && (
                     <button type="button" className="qa-remove" onClick={() => set('convictions', a.convictions.filter((_, j) => j !== i))}>
-                      Remove
+                      {t('Remove')}
                     </button>
                   )}
                 </legend>
@@ -259,7 +265,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
             {crisis.length > 0 && (
               <div className="msg msg-safety qa-safety" role="alert">
                 <p>
-                  <strong>You don’t have to handle this alone. If you are in danger, call 911. These free services can help tonight:</strong>
+                  <strong>{t('You don’t have to handle this alone. If you are in danger, call 911. These free services can help tonight:')}</strong>
                 </p>
                 <div className="safety-resources">
                   {crisis.map((r) => (
@@ -277,7 +283,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
         )
       case 'ids':
         return (
-          <div className="qa-choices" role="group" aria-label="IDs you have">
+          <div className="qa-choices" role="group" aria-label={t('IDs you have')}>
             {IDS.map((o) => {
               const on = a.ids.includes(o)
               return (
@@ -289,7 +295,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                   onClick={() => set('ids', on ? a.ids.filter((x) => x !== o) : [...a.ids, o])}
                 >
                   <span aria-hidden="true">{on ? '☑ ' : '☐ '}</span>
-                  {o}
+                  {t(o)}
                 </button>
               )
             })}
@@ -317,7 +323,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
             {[0, 1, 2].map((i) => (
               <Text
                 key={i}
-                label={`Goal ${i + 1}`}
+                label={t('Goal {n}', { n: i + 1 })}
                 value={a.goals[i]}
                 onChange={(v) => set('goals', a.goals.map((g, j) => (j === i ? v : g)) as Answers['goals'])}
                 placeholder={['For example, get a state ID', 'For example, apply for food benefits', 'For example, find a job'][i]}
@@ -337,40 +343,39 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
         renderResults?.(resultView, () => setResultView('plan'), () => setResultView('slate'))
       ) : stage === 'intro' ? (
         <section className="qa-card">
-          <h2 className="qa-question">Let’s check your record.</h2>
+          <h2 className="qa-question">{t('Let’s check your record.')}</h2>
           <p className="qa-intro">
-            I’m going to ask you a series of questions, which should take about 5 minutes. You can go back and change
-            your answers at any time. Ready to get started?
+            {t('I’m going to ask you a series of questions, which should take about 5 minutes. You can go back and change your answers at any time. Ready to get started?')}
           </p>
           <button type="button" className="qa-choice qa-start" onClick={() => setStage(0)}>
-            Let’s get started
+            {t('Let’s get started')}
           </button>
         </section>
       ) : q ? (
         <section className="qa-card" aria-labelledby="qa-title">
           <div className="qa-meta">
             <span className="qa-label">
-              Question {qIndex + 1} of {TOTAL}
+              {t('Question {n} of {total}', { n: qIndex + 1, total: TOTAL })}
             </span>
-            <span className={`qa-req ${q.required ? 'is-required' : ''}`}>{q.required ? 'Required' : 'Optional'}</span>
+            <span className={`qa-req ${q.required ? 'is-required' : ''}`}>{t(q.required ? 'Required' : 'Optional')}</span>
           </div>
           <h2 id="qa-title" className="qa-question">
-            {q.title}
+            {t(q.title)}
           </h2>
           <div className="qa-body">{renderQuestion(q.id)}</div>
           <div className="qa-nav">
             <button type="button" className="btn btn-quiet" onClick={back}>
-              ← Back
+              ← {t('Back')}
             </button>
             <button type="button" className="btn qa-next" onClick={next} disabled={!canContinue}>
-              {!q.required && !isAnswered(q.id, a) ? 'Skip' : qIndex + 1 === TOTAL ? 'Review answers' : 'Next'}
+              {t(!q.required && !isAnswered(q.id, a) ? 'Skip' : qIndex + 1 === TOTAL ? 'Review answers' : 'Next')}
             </button>
           </div>
         </section>
       ) : stage === 'review' ? (
         <section className="qa-card" aria-labelledby="qa-review">
           <h2 id="qa-review" className="qa-question">
-            Check your answers
+            {t('Check your answers')}
           </h2>
           <ol className="qa-review">
             {QUESTIONS.map((qq, i) => {
@@ -378,11 +383,11 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
               return (
                 <li key={qq.id} className={missing ? 'is-missing' : ''}>
                   <div>
-                    <span className="qa-r-q">{qq.title}</span>
-                    <span className="qa-r-a">{missing ? 'Needed to check your record' : summary(qq.id, a)}</span>
+                    <span className="qa-r-q">{t(qq.title)}</span>
+                    <span className="qa-r-a">{missing ? t('Needed to check your record') : summary(qq.id, a, t)}</span>
                   </div>
                   <button type="button" className="link-button" onClick={() => setStage(i)}>
-                    {missing ? 'Answer' : 'Change'}
+                    {t(missing ? 'Answer' : 'Change')}
                   </button>
                 </li>
               )
@@ -390,7 +395,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
           </ol>
           <div className="qa-nav">
             <button type="button" className="btn btn-quiet" onClick={back}>
-              ← Back
+              ← {t('Back')}
             </button>
             <button
               type="button"
@@ -401,7 +406,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                 onSubmit(buildAnswerMessage(a))
               }}
             >
-              Build my plan
+              {t('Build my plan')}
             </button>
           </div>
         </section>
@@ -410,7 +415,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
           {safety && safety.role === 'safety' && (
             <div className="msg msg-safety qa-safety" role="alert">
               <p>
-                <strong>{safety.text}</strong>
+                <strong>{t(safety.text)}</strong>
               </p>
               <div className="safety-resources">
                 {safety.resources.map((r) => (
@@ -419,13 +424,13 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
               </div>
             </div>
           )}
-          {errorMsg && errorMsg.role === 'error' && <p className="qa-error" role="alert">{errorMsg.text}</p>}
+          {errorMsg && errorMsg.role === 'error' && <p className="qa-error" role="alert">{t(errorMsg.text)}</p>}
           {busy ? (
             <WorkingCard agents={agents} />
           ) : followQ && followQ.role === 'assistant' ? (
             <section className="qa-card" aria-labelledby="qa-follow">
               <div className="qa-meta">
-                <span className="qa-label">One more question</span>
+                <span className="qa-label">{t('One more question')}</span>
               </div>
               <h2 id="qa-follow" className="qa-question">
                 {splitQuestion(followQ.text).question}
@@ -448,20 +453,20 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                 }}
               >
                 <label htmlFor="qa-follow-input" className="sr-only">
-                  Your answer
+                  {t('Your answer')}
                 </label>
-                <input id="qa-follow-input" value={followUp} onChange={(e) => setFollowUp(e.target.value)} placeholder="Type your answer…" maxLength={2000} />
+                <input id="qa-follow-input" value={followUp} onChange={(e) => setFollowUp(e.target.value)} placeholder={t('Type your answer…')} maxLength={2000} />
                 <button type="submit" className="btn" disabled={!followUp.trim()}>
-                  Send
+                  {t('Send')}
                 </button>
               </form>
             </section>
           ) : (
             <section className="qa-card">
-              <h2 className="qa-question">Something didn’t finish.</h2>
+              <h2 className="qa-question">{t('Something didn’t finish.')}</h2>
               <div className="qa-nav">
                 <button type="button" className="btn" onClick={() => setStage('review')}>
-                  Back to your answers
+                  {t('Back to your answers')}
                 </button>
               </div>
             </section>

@@ -132,9 +132,10 @@ async def _build_plan(ctx: Ctx, s: sessions.Session) -> dict:
     return s.final
 
 
-async def handle_message(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None) -> dict:
+async def handle_message(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None, lang: str = "en") -> dict:
     s = sessions.get_or_create(session_id, mode)
-    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    s.lang = lang
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model, lang=lang)
     async with s.lock:
         try:
             safety = await safety_guard.run(ctx, message)
@@ -162,10 +163,11 @@ async def handle_message(session_id: str, mode: str, message: str, emit: Emit = 
 # ---- Practice room (Step 4) ---------------------------------------------------------------
 
 
-def start_practice(session_id: str, mode: str, scenario_id: str, difficulty: str) -> dict:
+def start_practice(session_id: str, mode: str, scenario_id: str, difficulty: str, lang: str = "en") -> dict:
     """Begin a practice conversation. The opening line comes straight from scenarios.json."""
     scenario = practice.scenarios()[scenario_id]
     s = sessions.get_or_create(session_id, mode)
+    s.lang = lang
     s.practice = practice.PracticeState(
         scenario_id=scenario_id, difficulty=difficulty, last_partner_line=scenario["opening_line"],
     )
@@ -179,15 +181,16 @@ def start_practice(session_id: str, mode: str, scenario_id: str, difficulty: str
     }
 
 
-async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None) -> dict:
+async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None, lang: str = "en") -> dict:
     s = sessions.get_or_create(session_id, mode)
+    s.lang = lang
     if s.practice is None:
         return {"type": "error", "reply": "Choose a scenario to start practicing."}
     if s.practice.ended:
         return {"type": "ended", "summary": s.practice.summary}
     if practice.is_pause(message):  # a bare "pause"/"stop"/"help": nothing to screen, no AI call
         return dict(practice.PAUSED)
-    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model, lang=s.lang)
     async with s.lock:
         try:
             safety = await safety_guard.run(ctx, message)
@@ -202,14 +205,15 @@ async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _
             return {"type": "limit", "reply": exc.user_message}
 
 
-async def end_practice(session_id: str, mode: str, emit: Emit = _no_emit, model=None) -> dict:
+async def end_practice(session_id: str, mode: str, emit: Emit = _no_emit, model=None, lang: str = "en") -> dict:
     s = sessions.get_or_create(session_id, mode)
+    s.lang = lang
     st = s.practice
     if st is None or not st.turns:
         return {"type": "ended", "summary": None, "reply": "No answers yet, so there's nothing to score."}
     if st.ended and st.summary:
         return {"type": "ended", "summary": st.summary}
-    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model)
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model, lang=s.lang)
     async with s.lock:
         try:
             return {"type": "ended", "summary": await practice.run_summary(ctx, st)}
