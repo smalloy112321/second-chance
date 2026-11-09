@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import ExamplesPage from './ExamplesPage'
-import Logo from './Logo'
+import Logo, { LogoMark } from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { PLAN_DONE_PREFIX } from './PlanView'
 import { stayHere, useHistoryStep } from './historyStep'
@@ -139,6 +139,7 @@ function Shell({ children, footer, onHome }: { children: React.ReactNode; footer
       </header>
       <main id="main">{children}</main>
       <footer className="site-footer">
+        <div className="footer-text">
         {footer}
         <p>
           This planner gives general information, not legal advice. For your situation, talk with a legal aid lawyer.
@@ -154,6 +155,8 @@ function Shell({ children, footer, onHome }: { children: React.ReactNode; footer
           </a>
           .
         </p>
+        </div>
+        <LogoMark size={44} />
       </footer>
     </div>
   )

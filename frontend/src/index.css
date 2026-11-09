@@ -530,3 +530,8 @@ main { flex: 1; }
 .workspace.is-caseworker .workspace-main { max-width: none; }
 .composer-stacked { position: static; }  /* sits under the notes, not floating over the conversation */
 .composer-stacked textarea, .composer-stacked:has(.notes-help) textarea { flex: none; width: 100%; }
+
+/* footer: text on the left, the road icon on the bottom right */
+.site-footer { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; }
+.footer-text { min-width: 0; }
+.site-footer .logo-mark { flex: none; margin-bottom: 0.25rem; }
