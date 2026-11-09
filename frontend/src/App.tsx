@@ -10,7 +10,7 @@ import { stayHere, useHistoryStep } from './historyStep'
 import { clearTab, loadTab, saveTab } from './tabStore'
 import { ProgressSteps, WorkingCard } from './SelfServeFlow'
 import { caseNotesTemplate, notMentioned } from './caseNotes'
-import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
+import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, streamPost, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import SelfServeFlow from './SelfServeFlow'
 import {
@@ -283,6 +283,8 @@ function Workspace({
   const onFinal = (f: FinalPayload) => {
     if (f.type === 'question' || f.type === 'limit') {
       setMessages((m) => [...m, { role: 'assistant', text: f.reply }])
+    } else if (f.type === 'error') {
+      setMessages((m) => [...m, { role: 'error', text: f.reply }])
     } else if (f.type === 'info') {
       setMessages((m) => [...m, { role: 'assistant', text: f.reply }])
       if (f.result) setResult(f.result)
@@ -344,12 +346,30 @@ function Workspace({
     )
     setBusy(true)
     try {
-      await streamChat({ session_id: sessionId, mode, message: text }, onEvent)
+      // Self-serve checks the record first; the plan is built after she adds her goals.
+      await streamChat({ session_id: sessionId, mode, message: text, record_only: !caseworker }, onEvent)
     } catch (e) {
       const msg =
         e instanceof Error && e.message !== 'Failed to fetch'
           ? e.message
           : t('Could not reach the planner. Is the server running?')
+      setMessages((m) => [...m, { role: 'error', text: msg }])
+    } finally {
+      setBusy(false)
+      refreshUsage()
+    }
+  }
+
+  /** Self-serve: build the 30-day plan from her goals, after the record check. */
+  const buildPlan = async (goals: string[]) => {
+    if (busy) return
+    setMessages((m) => m.filter((x) => x.role !== 'error' && x.role !== 'safety'))
+    setAgents(freshAgents())
+    setBusy(true)
+    try {
+      await streamPost('/api/plan/stream', { session_id: sessionId, mode, goals }, onEvent)
+    } catch (e) {
+      const msg = e instanceof Error && e.message !== 'Failed to fetch' ? e.message : t('Could not reach the planner. Is the server running?')
       setMessages((m) => [...m, { role: 'error', text: msg }])
     } finally {
       setBusy(false)
@@ -454,6 +474,8 @@ function Workspace({
           finished={!!result}
           db={db}
           onSubmit={(text) => void send(text)}
+          hasPlan={!!result?.plan}
+          onBuildPlan={(goals) => void buildPlan(goals)}
           onLeave={() => void changeMode()}
           renderResults={(show, onShowPlan, onBack) =>
             result ? (
@@ -557,7 +579,7 @@ function Workspace({
                       <p className="notes-missing" aria-live="polite">
                         <strong>{t('Not mentioned yet:')}</strong> {missingFacts.map((f) => translateGap(f)).join(' · ')}
                         <span className="notes-missing-why">
-                          {' '}{t('Without these, some convictions may come back “Needs review”.')}
+                          {' '}{t('Without these, some convictions may come back “Needs more information”.')}
                         </span>
                       </p>
                     )}

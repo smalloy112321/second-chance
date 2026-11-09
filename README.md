@@ -39,13 +39,15 @@ All AI calls use `gpt-6-luna` through Portkey. The model is set in `backend/agen
 
 ## Try it
 
-Pick **I'm helping a client**, click **Let's get started**, and paste one of these notes, then **Submit**. (Or pick **I'm planning for myself** and answer 13 questions, one at a time.) Caseworkers can also click **Use the template**, and a **Not mentioned yet** box lists any fact the notes leave out, such as whether a conviction was a DUI, so fewer convictions come back "Needs review".
+Pick **I'm helping a client**, click **Let's get started**, and paste one of these notes, then **Submit**. (Or pick **I'm planning for myself**: answer 12 questions, click **Check my record** to see your results, then add up to three goals and click **Build my plan**. Self-serve checks the record first and builds the plan second, through `/api/plan/stream`.) Caseworkers can also click **Use the template**, and a **Not mentioned yet** box lists any fact the notes leave out, such as whether a conviction was a DUI, so fewer convictions come back "Needs review".
 
 1. **Likely erased:** "Client lives in New Haven. One misdemeanor (shoplifting), offense 2012-01-20, convicted 2012-03-01. Not family violence, not a sex offense, not DUI, not cannabis. Not on probation or parole. No pending cases. All sentences finished. One child, age 7, lives with her grandmother; no family court case. Staying with a friend tonight and this month. Has birth certificate and SS card but no state ID. No income. Goals: get ID, apply for SNAP, find work in food service."
 2. **Eligible on a future date:** "Client: Hartford. Class D felony larceny 3rd, offense Nov 2013, convicted 2014-01-10; misdemeanor breach of peace, offense April 2020, convicted 2020-05-05. Neither is family violence, sex offense, DUI, or cannabis. Not on probation or parole. No pending cases. All sentences complete. Two children (4 and 9) in DCF foster care; open family court case. In a shelter tonight and this month. Has SS card only. No income. Goals: get kids back, stable housing, a job." (Expected: misdemeanor on or after 2027-05-05, felony on or after 2030-05-05.)
 3. **Needs review:** "Client lives in Waterbury. One felony from around 2016 (drug sale; she doesn't know the class or maximum sentence). Not family violence or a sex offense, not DUI, not cannabis. Finished parole in 2021, not on supervision, no pending cases, all sentences complete. No children. Staying with her sister tonight and this month. Has state ID, birth certificate, and SS card. Works part-time. Goals: clear her record, full-time work, own apartment."
 
 The site works in **English, Español, and Português** (the dropdown at the top of every page). Screens, questions, next steps, and resource tips are translated in `frontend/src/strings/`; the agents are told to write their own text (plan, explanations, coaching) in the chosen language. Answers sent to the agents and the rules engine stay in English underneath, so results are the same in every language. The translations were written with AI help and should be checked by a native speaker before anyone relies on the legal terms.
+
+Steps that ask her to send something (mailing form DPS-0846-C, emailing the Clean Slate hearing form) have a **fill-in letter or email template** (`frontend/src/letters.ts`) she can edit, copy, or print.
 
 Her answers, results, and plan stay in **this browser tab only** (sessionStorage), so a reload doesn't lose them; closing the tab or "Clear my info" removes them, and nothing new is kept on the server. **Save or print my plan** saves a copy through the browser's print dialog.
 
@@ -103,7 +105,7 @@ The frontend has its own small tests (plain Node, no extra packages):
 for t in frontend/src/*.test.ts; do node "$t"; done
 ```
 
-They cover the questionnaire (`qaForm`, `qaRules`), results wording (`resultsDisplay`), the 30-day plan layout (`planDisplay`), the case-notes checklist (`caseNotes`), Practice (`practiceDisplay`), browser history (`historyStep`), and that every screen string has a Spanish and Portuguese translation (`i18n`).
+They cover the questionnaire (`qaForm`, `qaRules`), results wording (`resultsDisplay`), the 30-day plan layout (`planDisplay`), the case-notes checklist (`caseNotes`), Practice (`practiceDisplay`), browser history (`historyStep`), the letter templates (`letters`), and that every screen string has a Spanish and Portuguese translation (`i18n`).
 
 ## Changing the frontend (developers only)
 

@@ -31,7 +31,7 @@ export const STATUS_LABEL: Record<string, { label: string; tone: Tone }> = {
   petition: { label: 'Can be erased if you ask a court', tone: 'green' },
   petition_pre_2000: { label: 'Can be erased if you ask a court', tone: 'green' },
   petition_cannabis: { label: 'Can be erased if you ask a court', tone: 'green' },
-  needs_review: { label: 'Needs review', tone: 'amber' },
+  needs_review: { label: 'Needs more information', tone: 'amber' },
   not_eligible: { label: 'Likely not covered', tone: 'red' },
 }
 

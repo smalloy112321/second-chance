@@ -32,6 +32,8 @@ export type RulesConviction = {
   wait_years: number | null
   eligible_on: string | null
   reason_code: string
+  /** Plain-language reason for the result, from the rules engine. */
+  why?: string | null
   plain_meaning: string
   rule_source: string
 }
@@ -79,8 +81,9 @@ export type ResultPayload = {
   type: 'result'
   rules: RulesResult
   screener: Screener
-  plan: Plan
-  verifier: { approved: boolean; issues: VerifierIssue[] }
+  /** null right after the self-serve record check; built once she adds her goals */
+  plan: Plan | null
+  verifier: { approved: boolean; issues: VerifierIssue[] } | null
   needs_human_review: boolean
   next_steps: NextStep[]
   resources: Record<string, Resource>
@@ -92,6 +95,7 @@ export type FinalPayload =
   | { type: 'safety'; status: string; crisis_type: string | null; message: string; resources: Resource[] }
   | { type: 'limit'; reply: string }
   | { type: 'info'; reply: string; result?: ResultPayload }
+  | { type: 'error'; reply: string }
 
 export type ChatMessage =
   | { role: 'user' | 'assistant'; text: string }

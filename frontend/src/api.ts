@@ -4,7 +4,7 @@ import { getLang } from './i18n'
 export type StreamEvent = { event: string; data: any }
 
 /** POST /api/chat/stream and call onEvent for each server-sent event. */
-export function streamChat(body: { session_id: string; mode: Mode; message: string }, onEvent: (e: StreamEvent) => void) {
+export function streamChat(body: { session_id: string; mode: Mode; message: string; record_only?: boolean }, onEvent: (e: StreamEvent) => void) {
   return streamPost('/api/chat/stream', body, onEvent)
 }
 

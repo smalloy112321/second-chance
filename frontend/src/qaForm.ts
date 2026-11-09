@@ -88,23 +88,31 @@ export type QuestionId =
   | 'name' | 'where' | 'convictions' | 'familyViolence' | 'sexOffense' | 'probation' | 'pending'
   | 'finished' | 'kids' | 'housing' | 'ids' | 'work' | 'goals'
 
-export type Question = { id: QuestionId; title: string; required: boolean }
+/** `named` is the same question with her first name, used once she has given it. */
+export type Question = { id: QuestionId; title: string; named?: string; required: boolean }
 
 export const QUESTIONS: Question[] = [
   { id: 'name', title: 'What’s your first name?', required: false },
-  { id: 'where', title: 'Where do you live?', required: true },
-  { id: 'convictions', title: 'What convictions are on your record?', required: true },
-  { id: 'familyViolence', title: 'Were any of these convictions for family violence?', required: true },
-  { id: 'sexOffense', title: 'Were any of these convictions for a sex offense?', required: true },
-  { id: 'probation', title: 'Are you on probation, parole, or special parole right now?', required: true },
-  { id: 'pending', title: 'Do you have an open criminal case in Connecticut right now?', required: true },
-  { id: 'finished', title: 'Have you finished every part of every sentence, including prison, probation, and parole?', required: true },
-  { id: 'kids', title: 'Do you have children?', required: true },
-  { id: 'housing', title: 'Where are you staying tonight?', required: true },
-  { id: 'ids', title: 'Which of these IDs do you have?', required: false },
-  { id: 'work', title: 'Are you working right now?', required: false },
-  { id: 'goals', title: 'What are your top three goals for the next 30 days?', required: false },
+  { id: 'where', title: 'Where do you live?', named: 'Where do you live, {name}?', required: true },
+  { id: 'convictions', title: 'What convictions are on your record?', named: '{name}, what convictions are on your record?', required: true },
+  { id: 'familyViolence', title: 'Were any of these convictions for family violence?', named: '{name}, were any of these convictions for family violence?', required: true },
+  { id: 'sexOffense', title: 'Were any of these convictions for a sex offense?', named: '{name}, were any of these convictions for a sex offense?', required: true },
+  { id: 'probation', title: 'Are you on probation, parole, or special parole right now?', named: '{name}, are you on probation, parole, or special parole right now?', required: true },
+  { id: 'pending', title: 'Do you have an open criminal case in Connecticut right now?', named: '{name}, do you have an open criminal case in Connecticut right now?', required: true },
+  { id: 'finished', title: 'Have you finished every part of every sentence, including prison, probation, and parole?', named: '{name}, have you finished every part of every sentence, including prison, probation, and parole?', required: true },
+  { id: 'kids', title: 'Do you have children?', named: 'Do you have children, {name}?', required: true },
+  { id: 'housing', title: 'Where are you staying tonight?', named: 'Where are you staying tonight, {name}?', required: true },
+  { id: 'ids', title: 'Which of these IDs do you have?', named: 'Which of these IDs do you have, {name}?', required: false },
+  { id: 'work', title: 'Are you working right now?', named: 'Are you working right now, {name}?', required: false },
 ]
+
+/** Goals are asked after the record check, on the way to the 30-day plan (user test, Nov 9, 2026). */
+export const GOALS_QUESTION: Question = {
+  id: 'goals', title: 'What are your top three goals for the next 30 days?', named: '{name}, what are your top three goals for the next 30 days?', required: false,
+}
+
+/** Her first name for the questions ("Where do you live, Maria?"), or '' if she skipped it. */
+export const nameForQuestions = (a: Answers) => a.firstName.trim().split(/\s+/)[0]?.slice(0, 30) ?? ''
 
 const filled = (s: string) => s.trim().length > 0
 
@@ -218,6 +226,6 @@ export function buildAnswerMessage(a: Answers): string {
         : 'Working now: skipped',
   )
   const goals = a.goals.filter(filled).map((g) => g.trim())
-  lines.push(`Top goals for the next 30 days: ${goals.length ? goals.map((g, i) => `(${i + 1}) ${g}`).join(' ') : 'skipped'}`)
+  lines.push(`Top goals for the next 30 days: ${goals.length ? goals.map((g, i) => `(${i + 1}) ${g}`).join(' ') : 'asked later, after the record check'}`)
   return lines.join('\n')
 }

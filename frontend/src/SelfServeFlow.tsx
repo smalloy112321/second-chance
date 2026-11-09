@@ -6,7 +6,7 @@ import { t } from './i18n'
 
 import {
   CONVICTION_TYPES, FELONY_CLASSES, HOUSING, HOUSING_MONTH, IDS, KIDS_COUNT, KIDS_WITH, LEVELS, QUESTIONS, STATES, YEARS,
-  YES_NO, buildAnswerMessage, emptyAnswers, emptyConviction, isAnswered, needsSentenceQuestion, summary,
+  YES_NO, GOALS_QUESTION, buildAnswerMessage, emptyAnswers, emptyConviction, isAnswered, nameForQuestions, needsSentenceQuestion, summary,
   type Answers, type Conviction, type QuestionId,
 } from './qaForm'
 import { answerChoices, splitQuestion } from './qaRules'
@@ -22,10 +22,14 @@ import type { AgentState, ChatMessage, Resource } from './types'
 const STEPS = ['About you', 'Record check', 'Your results', '30-day plan', 'Practice'] as const
 
 /** The "Checking your record…" card shown while the agents run (self-serve and caseworker). */
-export function WorkingCard({ agents, client = false }: { agents: Record<string, { status: string }>; client?: boolean }) {
-  const steps = client
+export function WorkingCard({ agents, client = false, phase = 'all' }: {
+  agents: Record<string, { status: string }>; client?: boolean; phase?: 'all' | 'record' | 'plan'
+}) {
+  const all = client
     ? [['intake', 'Read the case notes'], ['screener', 'Checking Clean Slate rules'], ['planner', 'Building the 30-day plan'], ['verifier', 'Double-checking the plan']]
     : [['intake', 'Read your answers'], ['screener', 'Checking Clean Slate rules'], ['planner', 'Building your 30-day plan'], ['verifier', 'Double-checking your plan']]
+  // Self-serve checks the record first, then builds the plan after she adds her goals.
+  const steps = phase === 'record' ? all.slice(0, 2) : phase === 'plan' ? all.slice(2) : all
   const heading =
     agents.verifier?.status === 'running'
       ? client ? 'Double-checking the plan…' : 'Double-checking your plan…'
@@ -80,6 +84,10 @@ type Props = {
   finished: boolean
   db: Record<string, Resource>
   onSubmit: (text: string) => void
+  /** Whether the 30-day plan has been built yet (it is built after the record check and her goals). */
+  hasPlan?: boolean
+  /** Build the plan from her goals. */
+  onBuildPlan?: (goals: string[]) => void
   /** Go back to the homepage (used when Back is pressed after the answers were sent). */
   onLeave?: () => void
   renderResults?: (show: 'slate' | 'plan', onShowPlan: () => void, onBack: () => void) => ReactNode
@@ -134,7 +142,7 @@ function Text({ label, value, onChange, placeholder }: { label: string; value: s
   )
 }
 
-export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, onLeave, renderResults }: Props) {
+export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, hasPlan = true, onBuildPlan, onLeave, renderResults }: Props) {
   // A screen that comes back (e.g. after Practice) picks up where it was.
   const [stage, setStage] = useState<Stage>(() => {
     const s = currentStep<Stage>('stage', 'intro')
@@ -167,6 +175,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
   }, [stage, finished, resultView])
 
   const answeredCount = QUESTIONS.filter((q) => isAnswered(q.id, a)).length
+  const name = nameForQuestions(a)
   const qIndex = typeof stage === 'number' ? stage : -1
   const q = qIndex >= 0 ? QUESTIONS[qIndex] : null
   const canContinue = q ? !q.required || isAnswered(q.id, a) : false
@@ -339,7 +348,40 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
       <div ref={topRef} className="qa-anchor" />
       <ProgressSteps current={stepIndex} aboutFill={aboutFill} />
 
-      {finished ? (
+      {finished && resultView === 'plan' && !hasPlan ? (
+        busy ? (
+          <WorkingCard agents={agents} phase="plan" />
+        ) : (
+          <section className="qa-card" aria-labelledby="qa-goals">
+            <div className="qa-meta">
+              <span className="qa-label">{t('Your 30-day plan')}</span>
+              <span className="qa-req">{t('Optional')}</span>
+            </div>
+            <h2 id="qa-goals" className="qa-question">
+              {name ? t(GOALS_QUESTION.named!, { name }) : t(GOALS_QUESTION.title)}
+            </h2>
+            <p className="qa-intro">{t('Your plan will be built around these. You can leave them blank.')}</p>
+            <div className="qa-body">{renderQuestion('goals')}</div>
+            {errorMsg && errorMsg.role === 'error' && <p className="qa-error" role="alert">{t(errorMsg.text)}</p>}
+            {safety && safety.role === 'safety' && (
+              <div className="msg msg-safety qa-safety" role="alert">
+                <p><strong>{t(safety.text)}</strong></p>
+                <div className="safety-resources">
+                  {safety.resources.map((r) => <ResourceCard key={r.id} r={r} plain />)}
+                </div>
+              </div>
+            )}
+            <div className="qa-nav">
+              <button type="button" className="btn btn-quiet" onClick={() => setResultView('slate')}>
+                ← {t('Back to my results')}
+              </button>
+              <button type="button" className="btn qa-next" onClick={() => onBuildPlan?.(a.goals.filter((g) => g.trim()))}>
+                {t('Build my plan')}
+              </button>
+            </div>
+          </section>
+        )
+      ) : finished ? (
         renderResults?.(resultView, () => setResultView('plan'), () => setResultView('slate'))
       ) : stage === 'intro' ? (
         <section className="qa-card">
@@ -360,7 +402,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
             <span className={`qa-req ${q.required ? 'is-required' : ''}`}>{t(q.required ? 'Required' : 'Optional')}</span>
           </div>
           <h2 id="qa-title" className="qa-question">
-            {t(q.title)}
+            {name && q.named ? t(q.named, { name }) : t(q.title)}
           </h2>
           <div className="qa-body">{renderQuestion(q.id)}</div>
           <div className="qa-nav">
@@ -406,7 +448,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                 onSubmit(buildAnswerMessage(a))
               }}
             >
-              {t('Build my plan')}
+              {t('Check my record')}
             </button>
           </div>
         </section>
@@ -426,7 +468,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
           )}
           {errorMsg && errorMsg.role === 'error' && <p className="qa-error" role="alert">{t(errorMsg.text)}</p>}
           {busy ? (
-            <WorkingCard agents={agents} />
+            <WorkingCard agents={agents} phase="record" />
           ) : followQ && followQ.role === 'assistant' ? (
             <section className="qa-card" aria-labelledby="qa-follow">
               <div className="qa-meta">

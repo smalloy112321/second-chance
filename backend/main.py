@@ -46,6 +46,14 @@ class ChatRequest(BaseModel):
     mode: Mode
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
     lang: Lang = "en"
+    record_only: bool = False  # self-serve: run the Clean Slate check now, build the plan later
+
+
+class PlanRequest(BaseModel):
+    session_id: str = SessionId
+    mode: Mode = "self_serve"
+    goals: list[str] = Field(default_factory=list, max_length=3)
+    lang: Lang = "en"
 
 
 class PracticeStartRequest(BaseModel):
@@ -139,7 +147,7 @@ async def chat(req: ChatRequest) -> dict:
         events.append({"event": event, "data": data})
 
     try:
-        final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=collect, lang=req.lang)
+        final = await orchestrator.handle_message(req.session_id, req.mode, req.message, emit=collect, lang=req.lang, record_only=req.record_only)
     except Exception as exc:
         print(f"[chat] {type(exc).__name__}: {str(exc)[:300]}")
         raise HTTPException(status_code=502, detail=GENERIC_ERROR)
@@ -187,7 +195,13 @@ def _stream(label: str, work) -> StreamingResponse:
 async def chat_stream(req: ChatRequest) -> StreamingResponse:
     """Server-sent events: agent_started, agent_done, tool_called, verifier_issue,
     safety_block, error, and finally final."""
-    return _stream("chat/stream", lambda emit: orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit, lang=req.lang))
+    return _stream("chat/stream", lambda emit: orchestrator.handle_message(req.session_id, req.mode, req.message, emit=emit, lang=req.lang, record_only=req.record_only))
+
+
+@app.post("/api/plan/stream")
+async def plan_stream(req: PlanRequest):
+    """Build the 30-day plan from her goals (after the record check). Same live events as chat."""
+    return _stream("plan/stream", lambda emit: orchestrator.build_plan(req.session_id, req.mode, req.goals, emit=emit, lang=req.lang))
 
 
 # ---- Practice room -----------------------------------------------------------------------

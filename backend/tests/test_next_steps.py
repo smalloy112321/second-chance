@@ -36,6 +36,6 @@ def test_each_step_has_numbered_instructions_and_at_most_one_main_button():
 def test_most_important_step_comes_first():
     all_codes = ["confirm_record_spbi", "hearing_request", "legal_aid_referral"]
     assert ordered_steps(all_codes, "likely_erased")[:2] == ["confirm_record_spbi", "hearing_request"]
-    assert ordered_steps(["confirm_record_spbi", "legal_aid_referral"], "needs_review")[0] == "legal_aid_referral"
-    assert ordered_steps(["confirm_record_spbi", "legal_aid_referral"], "not_eligible")[0] == "legal_aid_referral"
+    assert ordered_steps(["confirm_record_spbi", "legal_aid_referral"], "needs_review")[0] == "confirm_record_spbi"  # official record first (user test)
+    assert ordered_steps(["confirm_record_spbi", "legal_aid_referral"], "not_eligible")[0] == "confirm_record_spbi"
     assert ordered_steps(["confirm_record_spbi", "petition_pre_2000", "legal_aid_referral"], "petition")[0] == "petition_pre_2000"

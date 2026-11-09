@@ -24,6 +24,6 @@ def test_example_next_steps_are_ordered_and_complete():
     ex = {e["title"]: e for e in example_results(date(2026, 11, 8))}
     codes = lambda t: [s["code"] for s in ex[t]["result"]["next_steps"]]  # noqa: E731
     assert codes("Likely erased") == ["confirm_record_spbi", "hearing_request"]
-    assert codes("Needs review")[0] == "legal_aid_referral"
+    assert codes("Needs review")[0] == "confirm_record_spbi"  # official record first
     assert codes("Can be erased if you ask a court")[0] == "petition_pre_2000"
     assert set(ex["Needs review"]["result"]["resources"]) == {"new-haven-legal-assistance", "statewide-legal-services-ct", "new-haven-pardon-program"}

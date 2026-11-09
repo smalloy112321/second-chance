@@ -79,9 +79,11 @@ NEXT_STEPS = {
 }
 
 # Most important step first, depending on the overall result.
+# The official record comes first: it answers most "needs review" questions, and legal aid and
+# pardon help both start from it (feedback from a user test, Nov 9, 2026).
 STEP_ORDER = {
-    "needs_review": ["legal_aid_referral", "confirm_record_spbi"],
-    "not_eligible": ["legal_aid_referral", "confirm_record_spbi"],
+    "needs_review": ["confirm_record_spbi", "legal_aid_referral"],
+    "not_eligible": ["confirm_record_spbi", "legal_aid_referral"],
     "petition": ["petition_pre_2000", "legal_aid_referral", "confirm_record_spbi"],
 }
 DEFAULT_ORDER = ["confirm_record_spbi", "hearing_request", "petition_pre_2000", "legal_aid_referral"]
@@ -118,8 +120,17 @@ def _result_payload(s: sessions.Session) -> dict:
     }
 
 
-async def _build_plan(ctx: Ctx, s: sessions.Session) -> dict:
+async def _record_check(ctx: Ctx, s: sessions.Session) -> dict:
+    """Self-serve step 2: the Clean Slate check only. The plan is built later, once she adds her goals."""
     await screener.run(ctx, s)
+    s.stage = "results"
+    s.final = _result_payload(s)
+    return s.final
+
+
+async def _build_plan(ctx: Ctx, s: sessions.Session, screen: bool = True) -> dict:
+    if screen:
+        await screener.run(ctx, s)
     plan = await planner.run(ctx, s)
     check = await verifier.run(ctx, s, plan)
     if not check.approved:
@@ -132,7 +143,9 @@ async def _build_plan(ctx: Ctx, s: sessions.Session) -> dict:
     return s.final
 
 
-async def handle_message(session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None, lang: str = "en") -> dict:
+async def handle_message(
+    session_id: str, mode: str, message: str, emit: Emit = _no_emit, model=None, lang: str = "en", record_only: bool = False,
+) -> dict:
     s = sessions.get_or_create(session_id, mode)
     s.lang = lang
     ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model, lang=lang)
@@ -145,15 +158,44 @@ async def handle_message(session_id: str, mode: str, message: str, emit: Emit = 
                 await emit("safety_block", payload)
                 return payload
 
-            if s.stage == "done":
+            if s.stage in ("done", "results"):
                 return {"type": "info", "reply": DONE_MESSAGE, **({"result": s.final} if s.final else {})}
 
             turn = await intake.run(ctx, s, message)
             if not turn.is_complete:
                 return {"type": "question", "reply": turn.reply, "missing_fields": turn.missing_fields}
 
-            result = await _build_plan(ctx, s)
+            result = await (_record_check(ctx, s) if record_only else _build_plan(ctx, s))
             return {**result, "reply": turn.reply}
+        except BudgetExceeded as exc:
+            payload = {"type": "limit", "reply": exc.user_message}
+            await emit("error", {"message": exc.user_message, "kind": "limit"})
+            return payload
+
+
+async def build_plan(
+    session_id: str, mode: str, goals: list[str], emit: Emit = _no_emit, model=None, lang: str = "en",
+) -> dict:
+    """Self-serve step 4: she adds her goals after seeing her results, then the plan is built."""
+    s = sessions.get_or_create(session_id, mode)
+    s.lang = lang
+    ctx = Ctx(session_id=session_id, mode=mode, emit=emit, model=model, lang=lang)
+    async with s.lock:
+        if s.screener is None or s.rules_result is None:
+            return {"type": "error", "reply": "Check your record first, then build your plan."}
+        if s.stage == "done" and s.final:
+            return s.final
+        goals = [g.strip()[:200] for g in goals if g and g.strip()][:3]
+        try:
+            if goals:  # free text she typed: screened like any other message
+                safety = await safety_guard.run(ctx, "My goals: " + "; ".join(goals))
+                if safety.status != "ok":
+                    shown = safety_guard.user_message(safety, mode)
+                    payload = {"type": "safety", "status": safety.status, "crisis_type": safety.crisis_type, **shown}
+                    await emit("safety_block", payload)
+                    return payload
+            s.profile.goals_30_days = goals
+            return await _build_plan(ctx, s, screen=False)
         except BudgetExceeded as exc:
             payload = {"type": "limit", "reply": exc.user_message}
             await emit("error", {"message": exc.user_message, "kind": "limit"})

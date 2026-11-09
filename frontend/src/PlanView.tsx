@@ -3,6 +3,8 @@ import { flushSync } from 'react-dom'
 
 import { loadTab, saveTab } from './tabStore'
 import { t } from './i18n'
+import LetterTemplate from './LetterTemplate'
+import { letterForLink, type LetterInput } from './letters'
 import { planDates, progressText, repeatedResources, shortUrl, weekDates } from './planDisplay'
 import type { Plan, PlanStep, Resource } from './types'
 
@@ -36,8 +38,9 @@ function PlanContact({ r }: { r: Resource }) {
 }
 
 function StepItem({
-  s, r, repeatWeek, done, onToggle,
-}: { s: PlanStep; r?: Resource; repeatWeek?: number; done: boolean; onToggle: () => void }) {
+  s, r, repeatWeek, done, onToggle, letterInput,
+}: { s: PlanStep; r?: Resource; repeatWeek?: number; done: boolean; onToggle: () => void; letterInput?: LetterInput }) {
+  const letter = s.official_links?.map((l) => letterForLink(l.url)).find(Boolean) ?? null
   const id = `plan-step-${s.step_id}`
   return (
     <li className={`plan-step${done ? ' is-done' : ''}`}>
@@ -57,6 +60,7 @@ function StepItem({
             ))}
           </div>
         )}
+        {letter && <LetterTemplate kind={letter} input={letterInput ?? {}} />}
         {r && repeatWeek !== undefined ? (
           <p className="plan-contact-repeat">
             {t('{name}: contact details are in Week {week}.', { name: r.name, week: repeatWeek })}
@@ -74,7 +78,7 @@ function StepItem({
   )
 }
 
-export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: string | null) => Resource | undefined }) {
+export default function PlanView({ plan, lookup, letterInput }: { plan: Plan; lookup: (id: string | null) => Resource | undefined; letterInput?: LetterInput }) {
   // The plan's start date is kept with it, so week dates don't shift after a reload.
   const [start] = useState(() => new Date(loadTab('plan.start', new Date().toISOString())))
   useEffect(() => saveTab('plan.start', start.toISOString()), [start])
@@ -92,8 +96,8 @@ export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: st
   }, [storageKey, done])
   const repeats = useMemo(() => repeatedResources(plan.weeks), [plan.weeks])
   const doneCount = steps.filter((s) => done[s.step_id]).length
-  // Week 1 starts open; later weeks fold down to their heading so the plan isn't one long page.
-  const [open, setOpen] = useState<Record<number, boolean>>(() => loadTab('plan.open', { [plan.weeks[0]?.week ?? 1]: true }))
+  // Every week starts folded to its heading; she opens one with its arrow (user test, Nov 9, 2026).
+  const [open, setOpen] = useState<Record<number, boolean>>(() => loadTab('plan.open', {}))
   useEffect(() => saveTab('plan.open', open), [open])
   const [printing, setPrinting] = useState(false)
   useEffect(() => {
@@ -149,6 +153,7 @@ export default function PlanView({ plan, lookup }: { plan: Plan; lookup: (id: st
                   repeatWeek={repeats[s.step_id]}
                   done={!!done[s.step_id]}
                   onToggle={() => setDone((d) => ({ ...d, [s.step_id]: !d[s.step_id] }))}
+                  letterInput={letterInput}
                 />
               ))}
             </ol>

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { QUESTIONS, buildAnswerMessage, emptyAnswers, isAnswered, type Answers } from './qaForm.ts'
+import { GOALS_QUESTION, QUESTIONS, buildAnswerMessage, emptyAnswers, isAnswered, nameForQuestions, type Answers } from './qaForm.ts'
 
 function sample(): Answers {
   return {
@@ -26,7 +26,8 @@ test('required questions match what the intake agent needs (items 1-7)', () => {
     QUESTIONS.filter((q) => q.required).map((q) => q.id),
     ['where', 'convictions', 'familyViolence', 'sexOffense', 'probation', 'pending', 'finished', 'kids', 'housing'],
   )
-  assert.deepEqual(QUESTIONS.filter((q) => !q.required).map((q) => q.id), ['name', 'ids', 'work', 'goals'])
+  assert.deepEqual(QUESTIONS.filter((q) => !q.required).map((q) => q.id), ['name', 'ids', 'work'])
+  assert.equal(GOALS_QUESTION.id, 'goals') // asked after the record check, before the plan
 })
 
 test('"I\'m not sure" counts as an answer, a blank does not', () => {
@@ -77,7 +78,7 @@ test('work: picking Yes or No counts, even with the follow-up box empty', () => 
 test('skipped optional questions are said to be skipped', () => {
   const a = { ...sample(), firstName: '', ids: [], working: '', goals: ['', '', ''] as Answers['goals'] }
   const m = buildAnswerMessage(a)
-  for (const s of ['First name: skipped', 'IDs I have: skipped', 'Working now: skipped', 'Top goals for the next 30 days: skipped']) {
+  for (const s of ['First name: skipped', 'IDs I have: skipped', 'Working now: skipped', 'Top goals for the next 30 days: asked later, after the record check']) {
     assert.ok(m.includes(s), s)
   }
 })
@@ -94,4 +95,10 @@ test('felony: the class is required, and the 5-year question only when the class
   a.convictions = [{ ...felony, felonyClass: "I'm not sure", underFive: 'Yes' }]
   assert.equal(isAnswered('convictions', a), true)
   assert.ok(buildAnswerMessage(a).includes("Felony class: I'm not sure. Longest possible sentence was under 5 years: Yes."), buildAnswerMessage(a))
+})
+
+test('later questions use her first name once she gives it', () => {
+  assert.equal(nameForQuestions({ ...sample(), firstName: '  Maria Lopez ' }), 'Maria')
+  assert.equal(nameForQuestions({ ...sample(), firstName: '' }), '')
+  for (const q of QUESTIONS.slice(1)) assert.ok(q.named?.includes('{name}'), q.id)
 })

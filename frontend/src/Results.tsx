@@ -1,5 +1,8 @@
 import PlanView from './PlanView'
 import { getLang, t } from './i18n'
+import LetterTemplate from './LetterTemplate'
+import type { LetterInput } from './letters'
+import { loadTab } from './tabStore'
 import { stepLabel } from './planDisplay'
 import { convictedLine, erasureLine, overallBadge, statusLabel, waitingNote } from './resultsDisplay'
 import type { Mode, Resource, ResultPayload } from './types'
@@ -78,6 +81,14 @@ export default function Results({
   const lookup = (id: string | null) => (id ? result.resources[id] ?? db[id] : undefined)
   const caseworker = mode === 'caseworker'
   const simple = show === 'slate' // self-serve results step: convictions first, no summary on top
+  // What the letter templates can fill in: her first name (self-serve) and the convictions that
+  // should already be erased (for the hearing email).
+  const letterInput: LetterInput = {
+    firstName: caseworker ? '' : loadTab<{ firstName?: string }>('self.answers', {}).firstName,
+    convictions: result.rules.convictions
+      .filter((c) => c.status === 'likely_erased' || c.status === 'likely_erased_cannabis')
+      .map((c) => ({ description: c.description, year: c.conviction_date ? c.conviction_date.slice(0, 4) : null })),
+  }
 
   return (
     <section className="results" aria-labelledby="results-title">
@@ -135,6 +146,13 @@ export default function Results({
                   <Badge status={c.status} />
                 </div>
                 {note && <p className="conviction-note">{t(note)}</p>}
+                {c.status === 'needs_review' && (
+                  // Say what is missing and who can answer it (user test, Nov 9, 2026).
+                  <p className="conviction-note conviction-why">
+                    {c.why && <strong>{t('Why:')}</strong>} {c.why && t(c.why)}{' '}
+                    {t('Your official record from the State Police (step 1 below) will show this. Free legal aid can also help you check.')}
+                  </p>
+                )}
               </li>
             )
           })}
@@ -177,6 +195,9 @@ export default function Results({
                       ))}
                     </div>
                   )}
+                  {(s.code === 'confirm_record_spbi' || s.code === 'hearing_request') && (
+                    <LetterTemplate kind={s.code === 'confirm_record_spbi' ? 'record_request' : 'hearing_email'} input={letterInput} />
+                  )}
                   {s.resource_ids.map((id) => {
                     const r = lookup(id)
                     return r ? <ResourceCard key={id} r={r} /> : null
@@ -192,14 +213,14 @@ export default function Results({
           {show === 'slate' && onShowPlan && (
             <div className="results-next no-print">
               <button type="button" className="btn qa-next" onClick={onShowPlan}>
-                {t('See my 30-day plan')} →
+                {t(result.plan ? 'See my 30-day plan' : 'Next: make my 30-day plan')} →
               </button>
             </div>
           )}
         </>
       )}
 
-      {show !== 'slate' && (
+      {show !== 'slate' && result.plan && (
         <>
           {show === 'plan' && onBackToResults && (
             <button type="button" className="link-button results-back no-print" onClick={onBackToResults}>
@@ -207,21 +228,21 @@ export default function Results({
             </button>
           )}
       {show !== 'plan' && <h3 className="plan-title" id="plan-30">{t('30-day plan')}</h3>}
-      {result.needs_human_review && (
+      {result.needs_human_review && result.verifier && (
         <div className="review-banner" role="alert">
           <strong>{t('Needs human review.')}</strong>{' '}
           {t('Our checker still found problems after one revision. Please review this plan with a caseworker or legal aid before acting on it.')}
           <ul>
             {result.verifier.issues.map((i, n) => (
               <li key={n}>
-                {stepLabel(result.plan.weeks, i.step_id, t) && <strong>{stepLabel(result.plan.weeks, i.step_id, t)}: </strong>}
+                {stepLabel(result.plan!.weeks, i.step_id, t) && <strong>{stepLabel(result.plan!.weeks, i.step_id, t)}: </strong>}
                 {i.problem}
               </li>
             ))}
           </ul>
         </div>
       )}
-      <PlanView plan={result.plan} lookup={lookup} />
+      <PlanView plan={result.plan!} lookup={lookup} letterInput={letterInput} />
         </>
       )}
     </section>
