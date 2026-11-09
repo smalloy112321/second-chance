@@ -544,8 +544,8 @@ main { flex: 1; }
 
 /* ---- Language picker (top right of every page) ---- */
 .site-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.lang-picker { display: inline-flex; align-items: center; gap: 0.4rem; border: 1.5px solid var(--tint-strong); border-radius: 999px; padding: 0.3rem 0.4rem 0.3rem 0.75rem; background: var(--surface); }
+.lang-picker { display: inline-flex; align-items: center; gap: 0.2rem; border: 1px solid var(--tint-strong); border-radius: 999px; padding: 0.05rem 0.15rem 0.05rem 0.5rem; background: var(--surface); font-size: 0.8rem; align-self: flex-start; }  /* small: well under the logo's size */
 .lang-picker:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(88, 101, 220, 0.2); }
-.lang-picker select { border: none; background: transparent; font: inherit; font-weight: 600; color: var(--navy); padding: 0.25rem 0.3rem; min-height: 2rem; cursor: pointer; }
+.lang-picker select { border: none; background: transparent; font: inherit; font-weight: 600; color: var(--navy); padding: 0.2rem 0.15rem; min-height: 1.75rem; cursor: pointer; }
 .lang-picker select:focus { outline: none; }
-.lang-picker-icon { font-size: 1rem; }
+.lang-picker-icon { font-size: 0.8rem; }
