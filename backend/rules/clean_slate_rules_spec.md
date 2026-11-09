@@ -131,7 +131,7 @@ Then the person-level gates:
 - `confirm_record_spbi`: request a current record from State Police (online, or by mail with form DPS-0846-C)
 - `hearing_request`: if it should have been erased but wasn't, send a record check dated on or after 1/1/2024 plus the Clean Slate hearing form to DESPP.cshearing@ct.gov
 - `petition_pre_2000`: court petition (form JD-CR-202)
-- `legal_aid_referral`: New Haven Legal Assistance 203-946-4811 (Greater New Haven) or Statewide Legal Services 800-453-3320 (elsewhere)
+- `legal_aid_referral`: free help with the record. Legal aid for housing or job harms from a conviction that should be erased (New Haven Legal Assistance 203-946-4811 in Greater New Haven, Statewide Legal Services 800-453-3320 elsewhere; neither does erasure petitions or pardons), a free self-filed pardon (Board of Pardons and Paroles), the New Haven Pardon Program workshops, and Court Service Centers for forms. Checked November 9, 2026.
 
 ---
 

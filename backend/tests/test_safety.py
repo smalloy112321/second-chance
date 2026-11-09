@@ -75,3 +75,17 @@ def test_normal_message_goes_to_ai_classifier():
     result = run("I live in New Haven and I have two kids.", model)
     assert result.status == "ok"
     assert len(calls) == 1
+
+
+def test_caseworker_crisis_message_speaks_about_the_client():
+    hit = safety_guard.keyword_check("she told me tonight she wants to kill herself")
+    assert safety_guard.user_message(hit, "caseworker")["message"].startswith("It sounds like your client may need help")
+    assert safety_guard.user_message(hit)["message"].startswith("It sounds like you may need help")
+    assert safety_guard.user_message(hit, "caseworker")["resources"]  # same checked crisis lines
+
+
+def test_third_person_crisis_is_caught_free_without_false_alarms():
+    for text in ["She said she wants to kill herself", "her partner hits her", "she wants to die"]:
+        assert safety_guard.keyword_check(text).status == "crisis", text
+    for text in ["The conviction could hurt her job search", "She beat her addiction in 2019"]:
+        assert safety_guard.keyword_check(text) is None, text

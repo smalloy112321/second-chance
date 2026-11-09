@@ -26,4 +26,4 @@ def test_example_next_steps_are_ordered_and_complete():
     assert codes("Likely erased") == ["confirm_record_spbi", "hearing_request"]
     assert codes("Needs review")[0] == "legal_aid_referral"
     assert codes("Can be erased if you ask a court")[0] == "petition_pre_2000"
-    assert set(ex["Needs review"]["result"]["resources"]) == {"new-haven-legal-assistance", "statewide-legal-services-ct"}
+    assert set(ex["Needs review"]["result"]["resources"]) == {"new-haven-legal-assistance", "statewide-legal-services-ct", "new-haven-pardon-program"}

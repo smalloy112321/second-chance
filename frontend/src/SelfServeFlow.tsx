@@ -263,7 +263,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
                 </p>
                 <div className="safety-resources">
                   {crisis.map((r) => (
-                    <ResourceCard key={r.id} r={r} />
+                    <ResourceCard key={r.id} r={r} plain />
                   ))}
                 </div>
               </div>
@@ -414,7 +414,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
               </p>
               <div className="safety-resources">
                 {safety.resources.map((r) => (
-                  <ResourceCard key={r.id} r={r} />
+                  <ResourceCard key={r.id} r={r} plain />
                 ))}
               </div>
             </div>

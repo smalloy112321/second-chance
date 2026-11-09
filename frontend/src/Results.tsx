@@ -8,7 +8,8 @@ function Badge({ status }: { status: string }) {
   return <span className={`badge badge-${s.tone}`}>{s.label}</span>
 }
 
-export function ResourceCard({ r, hideNotes = false }: { r: Resource; hideNotes?: boolean }) {
+/** `plain` shows the short tip written for her instead of our research notes (used on crisis messages). */
+export function ResourceCard({ r, hideNotes = false, plain = false }: { r: Resource; hideNotes?: boolean; plain?: boolean }) {
   return (
     <div className="resource">
       <div className="resource-name">{r.name}</div>
@@ -32,7 +33,11 @@ export function ResourceCard({ r, hideNotes = false }: { r: Resource; hideNotes?
           </li>
         )}
       </ul>
-      {r.notes && !hideNotes && <p className="resource-notes">{r.notes}</p>}
+      {plain ? (
+        r.tip && <p className="resource-notes">{r.tip}</p>
+      ) : (
+        r.notes && !hideNotes && <p className="resource-notes">{r.notes}</p>
+      )}
       <p className="resource-checked">Checked {r.verified_on}</p>
     </div>
   )

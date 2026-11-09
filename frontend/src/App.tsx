@@ -469,7 +469,7 @@ function Workspace({
                       <p>{m.text}</p>
                       <div className="safety-resources">
                         {m.resources.map((r) => (
-                          <ResourceCard key={r.id} r={r} />
+                          <ResourceCard key={r.id} r={r} plain />
                         ))}
                       </div>
                     </div>

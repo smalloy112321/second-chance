@@ -14,12 +14,14 @@ from agents import intake, planner, practice, safety_guard, screener, verifier
 from agents.runtime import BudgetExceeded, Ctx, Emit, _no_emit
 
 # Next steps the UI can show (wording and forms from clean_slate_rules_spec.md section 5).
-# Links go straight to official State of Connecticut pages (checked November 8, 2026).
+# Links go straight to official State of Connecticut pages (checked November 8-9, 2026).
 DPS_0846_C = "https://portal.ct.gov/-/media/DESPP/reports_and_records/DPS0846CCriminalHistoryRecordRequestFormRev120117pdf.pdf"
 SPBI_PAGE = "https://portal.ct.gov/despp/division-of-emergency-service-and-public-protection/reports-and-records/state-police-bureau-of-identification"
 RECORDS_HOWTO = "https://portal.ct.gov/cleanslate/how-to-access-criminal-records"
 HEARING_FORM = "https://portal.ct.gov/-/media/DESPP/CSP/SPBI/Clean-Slate/DESPP-CS-Hearing-Form.pdf"
 PETITION_FORM = "https://www.jud.ct.gov/webforms/forms/CR202.pdf"
+PARDON_PAGE = "https://portal.ct.gov/bopp"
+COURT_SERVICE_CENTERS = "https://www.jud.ct.gov/CSC/"
 
 NEXT_STEPS = {
     "confirm_record_spbi": {
@@ -60,14 +62,19 @@ NEXT_STEPS = {
         "links": [{"label": "Download form JD-CR-202", "url": PETITION_FORM, "primary": True}],
     },
     "legal_aid_referral": {
-        "title": "Talk with free legal aid",
-        "detail": "A legal aid lawyer can look at your record with you and explain your options.",
+        "title": "Get free help with your record",
+        "detail": "Free legal aid in Connecticut does not take erasure or pardon cases, but these free options can help.",
         "how": [
-            "If you live in the Greater New Haven area, call New Haven Legal Assistance.",
-            "Anywhere else in Connecticut, call Statewide Legal Services.",
+            "If your record is causing a housing or job problem and the conviction should have been erased, call legal aid to see if they can take your case: New Haven Legal Assistance in the Greater New Haven area, Statewide Legal Services everywhere else.",
+            "To clear a conviction that Clean Slate doesn't cover, you can apply for a pardon yourself, online and for free. You don't need a lawyer.",
+            "For free one-on-one help with a pardon application, the New Haven Pardon Program runs workshops at New Haven libraries.",
+            "Court Service Centers in courthouses can help you find and file court forms, like the petition to erase older convictions.",
         ],
-        "resource_ids": ["new-haven-legal-assistance", "statewide-legal-services-ct"],
-        "links": [],
+        "resource_ids": ["new-haven-legal-assistance", "statewide-legal-services-ct", "new-haven-pardon-program"],
+        "links": [
+            {"label": "Apply for a pardon (Board of Pardons and Paroles)", "url": PARDON_PAGE, "primary": True},
+            {"label": "Find a Court Service Center", "url": COURT_SERVICE_CENTERS},
+        ],
     },
 }
 
@@ -132,7 +139,7 @@ async def handle_message(session_id: str, mode: str, message: str, emit: Emit = 
         try:
             safety = await safety_guard.run(ctx, message)
             if safety.status != "ok":
-                shown = safety_guard.user_message(safety)
+                shown = safety_guard.user_message(safety, mode)
                 payload = {"type": "safety", "status": safety.status, "crisis_type": safety.crisis_type, **shown}
                 await emit("safety_block", payload)
                 return payload
@@ -185,7 +192,7 @@ async def practice_turn(session_id: str, mode: str, message: str, emit: Emit = _
         try:
             safety = await safety_guard.run(ctx, message)
             if safety.status != "ok":
-                shown = safety_guard.user_message(safety)
+                shown = safety_guard.user_message(safety, mode)
                 payload = {"type": "safety", "status": safety.status, "crisis_type": safety.crisis_type, **shown}
                 await emit("safety_block", payload)
                 return payload

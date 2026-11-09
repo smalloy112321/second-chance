@@ -24,10 +24,20 @@ CRISIS_PHRASES: dict[str, str] = {
     "end my life": "self_harm",
     "hurt myself": "self_harm",
     "want to die": "self_harm",
+    # Caseworkers write about the client in the third person.
+    "kill herself": "self_harm",
+    "killing herself": "self_harm",
+    "hurt herself": "self_harm",
+    "hurting herself": "self_harm",
+    "end her life": "self_harm",
+    "wants to die": "self_harm",
     "hurt me": "violence",
     "hurting me": "violence",
     "beat me": "violence",
     "hits me": "violence",
+    "is hurting her": "violence",
+    "hits her": "violence",
+    "beats her": "violence",
     "nowhere to sleep": "no_shelter_tonight",
     "no place to sleep": "no_shelter_tonight",
     "nowhere to stay tonight": "no_shelter_tonight",
@@ -62,6 +72,11 @@ CRISIS_MESSAGE = (
     "It sounds like you may need help right now. You don't have to handle this alone. "
     "If you are in immediate danger, call 911. These free services can help today:"
 )
+# Caseworkers usually write about the client, so the message speaks to them about her.
+CRISIS_MESSAGE_CASEWORKER = (
+    "It sounds like your client may need help right now. If she is in immediate danger, call 911. "
+    "These free services can help today, and you can share them with her:"
+)
 
 agent = Agent(name=NAME, output_type=SafetyResult, retries=2)
 
@@ -83,10 +98,11 @@ def keyword_check(message: str) -> SafetyResult | None:
     return None
 
 
-def user_message(result: SafetyResult) -> dict:
+def user_message(result: SafetyResult, mode: str = "self_serve") -> dict:
     """The pre-written message and checked resources the app shows for a blocked message."""
     if result.status == "crisis":
-        return {"message": CRISIS_MESSAGE, "resources": resources.crisis_resources(result.crisis_type)}
+        message = CRISIS_MESSAGE_CASEWORKER if mode == "caseworker" else CRISIS_MESSAGE
+        return {"message": message, "resources": resources.crisis_resources(result.crisis_type)}
     if result.status == "injection":
         return {"message": INJECTION_MESSAGE, "resources": []}
     if result.status == "off_topic":

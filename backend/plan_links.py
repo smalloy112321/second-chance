@@ -4,9 +4,11 @@ and its prompt are unchanged; this runs on the finished plan.
 1. Record steps get the same official links as the results page, judged from the step's action.
    A step about getting your official record gets the DPS-0846-C form button. A step about a
    Clean Slate hearing gets the hearing form button.
-2. Record steps never point to a legal aid office that does not take criminal-record matters
-   (Statewide Legal Services and New Haven Legal Assistance both say so in their notes). Those
-   steps point to CTLawHelp's free legal help finder instead.
+2. Steps about the erasure itself (a Clean Slate hearing, a court petition) or a pardon never point
+   to Statewide Legal Services or New Haven Legal Assistance: neither takes those cases (checked on
+   their sites, Nov 9, 2026). They do take housing or job problems caused by a conviction that should
+   have been erased, so those steps keep them. Pardon steps point to the Board of Pardons and Paroles;
+   erasure steps point to the state's Clean Slate site.
 """
 
 from __future__ import annotations
@@ -14,15 +16,18 @@ from __future__ import annotations
 import copy
 import re
 
-# Legal aid offices whose checked notes say they do not handle criminal matters.
+# Legal aid offices whose checked notes say they do not handle criminal matters, erasure, or pardons.
 NO_CRIMINAL_LEGAL_AID = {"statewide-legal-services-ct", "new-haven-legal-assistance"}
-RECORD_HELP_FALLBACK = "ctlawhelp"
+RECORD_HELP_FALLBACK = "ct-clean-slate-erasure"
+PARDON_HELP = "ct-bopp-pardons"
 
 _HEARING = re.compile(r"\bhearing\b", re.I)
 _RECORD_REQUEST = re.compile(
     r"(state police|official record|current record|criminal record|record check|dps-0846|request (?:a copy of )?your record)", re.I
 )
-_RECORD_TOPIC = re.compile(r"(record|conviction|clean slate|eras|hearing|pardon)", re.I)
+_ERASURE_OR_PARDON = re.compile(r"(clean slate|eras|hearing|petition|pardon|expunge)", re.I)
+_HOUSING_OR_JOB = re.compile(r"\b(housing|landlords?|apartments?|rent|rental|evict\w*|jobs?|employ\w*|hiring|work)\b", re.I)
+_PARDON = re.compile(r"pardon", re.I)
 
 
 def official_step_code(text: str) -> str | None:
@@ -45,6 +50,10 @@ def apply(plan: dict | None, next_steps: dict[str, dict]) -> dict | None:
             code = official_step_code(step.get("action", ""))  # the action only: a "why" can mention the record in passing
             if code and code in next_steps:
                 step["official_links"] = next_steps[code]["links"]
-            if step.get("resource_id") in NO_CRIMINAL_LEGAL_AID and _RECORD_TOPIC.search(text):
-                step["resource_id"] = RECORD_HELP_FALLBACK
+            if (
+                step.get("resource_id") in NO_CRIMINAL_LEGAL_AID
+                and _ERASURE_OR_PARDON.search(text)
+                and not _HOUSING_OR_JOB.search(text)
+            ):
+                step["resource_id"] = PARDON_HELP if _PARDON.search(text) else RECORD_HELP_FALLBACK
     return out

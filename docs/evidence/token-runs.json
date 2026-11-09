@@ -1,0 +1,299 @@
+{
+ "note": "Distinct real planner runs from output/usage_log.json (local server, Nov 7-9 2026). Runs whose every model call matched an earlier run token-for-token were Portkey replays of an identical request and are excluded. Prices: backend/data/prices.json.",
+ "summary": {
+  "distinct_runs": 14,
+  "replays_dropped": 7,
+  "typical_runs": 12,
+  "median_input": 25809.5,
+  "median_cached_input": 10478.0,
+  "median_output": 4567.0,
+  "median_total": 30376.5,
+  "range_total": [
+   19738,
+   44224
+  ],
+  "median_cost_usd": 0.00366,
+  "range_cost_usd": [
+   0.00229,
+   0.00559
+  ],
+  "cached_share_of_input": 0.454,
+  "median_cost_if_no_prompt_cache": 0.00486,
+  "runs_with_one_revision": 6,
+  "share_by_agent": {
+   "planner": 0.509,
+   "verifier": 0.264,
+   "intake": 0.094,
+   "screener": 0.092,
+   "safety_guard": 0.042
+  }
+ },
+ "runs": [
+  {
+   "session": "e2e-test",
+   "start": "2026-11-07T20:01:18+00:00",
+   "model_calls": 6,
+   "seconds": 27.0,
+   "input": 16974,
+   "cached_input": 2709,
+   "output": 3433,
+   "total": 20407,
+   "cost_usd": 0.00317,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 896,
+    "intake": 2070,
+    "screener": 2674,
+    "planner": 10106,
+    "verifier": 4661
+   }
+  },
+  {
+   "session": "aed2e989",
+   "start": "2026-11-07T20:04:39+00:00",
+   "model_calls": 11,
+   "seconds": 59.0,
+   "input": 36056,
+   "cached_input": 19548,
+   "output": 6874,
+   "total": 42930,
+   "cost_usd": 0.00528,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 1717,
+    "intake": 5246,
+    "screener": 2959,
+    "planner": 23147,
+    "verifier": 9861
+   }
+  },
+  {
+   "session": "e2e-test",
+   "start": "2026-11-07T20:07:32+00:00",
+   "model_calls": 9,
+   "seconds": 40.0,
+   "input": 30090,
+   "cached_input": 17562,
+   "output": 4861,
+   "total": 34951,
+   "cost_usd": 0.00386,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 879,
+    "intake": 2146,
+    "screener": 2633,
+    "planner": 19544,
+    "verifier": 9749
+   }
+  },
+  {
+   "session": "e2e-test",
+   "start": "2026-11-07T20:08:54+00:00",
+   "model_calls": 6,
+   "seconds": 24.0,
+   "input": 16773,
+   "cached_input": 9671,
+   "output": 2965,
+   "total": 19738,
+   "cost_usd": 0.00229,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 886,
+    "intake": 2376,
+    "screener": 2613,
+    "planner": 8848,
+    "verifier": 5015
+   }
+  },
+  {
+   "session": "e2e-self",
+   "start": "2026-11-08T16:18:41+00:00",
+   "model_calls": 24,
+   "seconds": 47.0,
+   "input": 46594,
+   "cached_input": 11667,
+   "output": 7135,
+   "total": 53729,
+   "cost_usd": 0.00718,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 7687,
+    "intake": 28663,
+    "screener": 2779,
+    "planner": 9076,
+    "verifier": 5524
+   }
+  },
+  {
+   "session": "17ec12b8",
+   "start": "2026-11-08T17:21:01+00:00",
+   "model_calls": 7,
+   "seconds": 69.0,
+   "input": 19576,
+   "cached_input": 4548,
+   "output": 3839,
+   "total": 23415,
+   "cost_usd": 0.00347,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 1730,
+    "intake": 2248,
+    "screener": 2959,
+    "planner": 10477,
+    "verifier": 6001
+   }
+  },
+  {
+   "session": "877b1226",
+   "start": "2026-11-08T21:03:25+00:00",
+   "model_calls": 44,
+   "seconds": 198.0,
+   "input": 86123,
+   "cached_input": 29650,
+   "output": 13586,
+   "total": 99709,
+   "cost_usd": 0.01274,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 15317,
+    "intake": 66445,
+    "screener": 2755,
+    "planner": 9779,
+    "verifier": 5413
+   }
+  },
+  {
+   "session": "aa5a975b",
+   "start": "2026-11-08T21:35:35+00:00",
+   "model_calls": 6,
+   "seconds": 27.0,
+   "input": 17111,
+   "cached_input": 9708,
+   "output": 3291,
+   "total": 20402,
+   "cost_usd": 0.00248,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 999,
+    "intake": 2473,
+    "screener": 2763,
+    "planner": 8977,
+    "verifier": 5190
+   }
+  },
+  {
+   "session": "2a697d4b",
+   "start": "2026-11-08T21:57:46+00:00",
+   "model_calls": 7,
+   "seconds": 37.0,
+   "input": 21529,
+   "cached_input": 11468,
+   "output": 4273,
+   "total": 25802,
+   "cost_usd": 0.00326,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 1038,
+    "intake": 5812,
+    "screener": 3056,
+    "planner": 10227,
+    "verifier": 5669
+   }
+  },
+  {
+   "session": "3eab9322",
+   "start": "2026-11-08T22:03:47+00:00",
+   "model_calls": 6,
+   "seconds": 24.0,
+   "input": 16967,
+   "cached_input": 9681,
+   "output": 3170,
+   "total": 20137,
+   "cost_usd": 0.00241,
+   "plan_revised_once": false,
+   "by_agent": {
+    "safety_guard": 948,
+    "intake": 2169,
+    "screener": 2763,
+    "planner": 8885,
+    "verifier": 5372
+   }
+  },
+  {
+   "session": "e20e333c",
+   "start": "2026-11-08T22:52:21+00:00",
+   "model_calls": 9,
+   "seconds": 44.0,
+   "input": 31989,
+   "cached_input": 10478,
+   "output": 5426,
+   "total": 37415,
+   "cost_usd": 0.00497,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 987,
+    "intake": 2302,
+    "screener": 2783,
+    "planner": 20620,
+    "verifier": 10723
+   }
+  },
+  {
+   "session": "01f5d7f5",
+   "start": "2026-11-08T23:55:14+00:00",
+   "model_calls": 11,
+   "seconds": 15.0,
+   "input": 33433,
+   "cached_input": 10478,
+   "output": 5566,
+   "total": 38999,
+   "cost_usd": 0.00518,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 2571,
+    "intake": 2302,
+    "screener": 2783,
+    "planner": 20620,
+    "verifier": 10723
+   }
+  },
+  {
+   "session": "e95d35e7",
+   "start": "2026-11-09T00:06:23+00:00",
+   "model_calls": 9,
+   "seconds": 55.0,
+   "input": 36443,
+   "cached_input": 18372,
+   "output": 7012,
+   "total": 43455,
+   "cost_usd": 0.0055,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 1015,
+    "intake": 2928,
+    "screener": 3121,
+    "planner": 23855,
+    "verifier": 12536
+   }
+  },
+  {
+   "session": "5e1cfbc4",
+   "start": "2026-11-09T01:04:34+00:00",
+   "model_calls": 10,
+   "seconds": 9.0,
+   "input": 37164,
+   "cached_input": 18372,
+   "output": 7060,
+   "total": 44224,
+   "cost_usd": 0.00559,
+   "plan_revised_once": true,
+   "by_agent": {
+    "safety_guard": 1784,
+    "intake": 2928,
+    "screener": 3121,
+    "planner": 23855,
+    "verifier": 12536
+   }
+  }
+ ]
+}

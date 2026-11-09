@@ -347,7 +347,7 @@ export default function PracticeRoom({
                   </p>
                   <div className="safety-resources">
                     {x.resources.map((r) => (
-                      <ResourceCard key={r.id} r={r} />
+                      <ResourceCard key={r.id} r={r} plain />
                     ))}
                   </div>
                 </li>

@@ -57,6 +57,10 @@ Rehearse a hard conversation with a role-play partner while a coach scores each 
 - **Guards in code:** a suggested answer that denies having a record is replaced unless her record is likely erased (job interview only); legal facts are limited to `backend/data/legal_facts.json` and shown from that file; scores are clamped to 1–3; the summary's quote must be words she said.
 - Type "pause" or use **Pause**; the 🎤 button (shown when the browser supports speech-to-text) fills in her spoken answer.
 
+## Evidence for the report
+
+`docs/evidence/` has measured tokenomics from real runs, screenshots of the safety guard blocking a prompt injection and handling a crisis message, the safety test results, a comparison with existing tools, and a short script for testing with a real user. See `docs/evidence/README.md`.
+
 ## Example results (for screenshots)
 
 Open <http://127.0.0.1:8000/?examples> (or the live link with `/?examples`) to see what the "Your results" step shows for eight sample answers: likely erased, partly erased, expected on a date, waiting on probation, not covered, needs review, court petition, and cannabis law. It uses only the rules engine and the fixed next steps, so it costs nothing and matches the app exactly.
@@ -74,7 +78,7 @@ Open <http://127.0.0.1:8000/?examples> (or the live link with `/?examples`) to s
 | `backend/agents/` | One file per agent, plus `config.py` (model + `.env`), `runtime.py` (token cap, logging, live events), `reference.py` (cached prompt prefix) |
 | `backend/prompts/` | Agent instructions; `_shared.md` is added to every agent |
 | `backend/rules/clean_slate.py` | Clean Slate rules engine (plain Python, no AI); spec in `clean_slate_rules_spec.md` |
-| `backend/data/ct_resources.json` | 40 checked Connecticut resources; contact details are shown from here, never written by the AI. `notes` are research notes (results page); `tip` is a plain-language version (30-day plan) |
+| `backend/data/ct_resources.json` | 41 checked Connecticut resources; contact details are shown from here, never written by the AI. `notes` are research notes (results page); `tip` is a plain-language version (30-day plan) |
 | `backend/data/prices.json` | gpt-6-luna prices used for the cost estimate (MGT 409 Lecture 11) |
 | `backend/usage.py`, `backend/audit.py` | Token log (`output/usage_log.json`, 150,000-token cap per session) and audit trail (`output/audit_trail.json`); rows are only ever added |
 | `backend/agents/practice.py` | Practice Room: role-play, coach, and summary agents plus their code guards; scenarios in `backend/data/scenarios.json` |
