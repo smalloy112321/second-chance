@@ -1,0 +1,26 @@
+# Keeps the free Render site awake while the project is being graded.
+# Render's free plan sleeps after 15 minutes without visitors, and the next visit then takes about a
+# minute to load. This visits the health check every 10 minutes (no AI calls, no tokens used).
+# GitHub may run scheduled jobs a few minutes late. Remove this file after grades are posted.
+name: Keep the live site awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Visit the health check
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS --max-time 90 https://second-chance-pathway-planner.onrender.com/api/health; then exit 0; fi
+            sleep 20
+          done
+          echo "The site did not answer after 3 tries."
+          exit 1

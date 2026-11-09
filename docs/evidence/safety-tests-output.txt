@@ -5,12 +5,14 @@ tests/test_safety.py::test_injection_in_pasted_case_notes_caught PASSED
 tests/test_safety.py::test_normal_message_goes_to_ai_classifier PASSED
 tests/test_safety.py::test_caseworker_crisis_message_speaks_about_the_client PASSED
 tests/test_safety.py::test_third_person_crisis_is_caught_free_without_false_alarms PASSED
+tests/test_safety.py::test_spanish_and_portuguese_crisis_and_injection_are_caught_free PASSED
 tests/test_verifier_code.py::test_fake_resource_id_flagged PASSED
 tests/test_verifier_code.py::test_real_resource_ids_pass PASSED
 tests/test_verifier_code.py::test_phone_number_in_step_flagged PASSED
 tests/test_verifier_code.py::test_disclosure_wording_flagged_unless_rules_allow_it PASSED
 tests/test_verifier_code.py::test_disclosure_wording_in_summary_flagged PASSED
 tests/test_verifier_code.py::test_cautious_disclosure_wording_not_flagged PASSED
+tests/test_verifier_code.py::test_spanish_and_portuguese_disclosure_is_flagged_but_cautious_wording_is_not PASSED
 tests/test_screener_guard.py::test_next_step_not_in_rules_result_is_dropped PASSED
 tests/test_screener_guard.py::test_apply_guards_drops_codes_and_adds_estimate_line PASSED
 tests/test_screener_guard.py::test_can_answer_no_only_when_everything_likely_erased PASSED
@@ -24,10 +26,12 @@ tests/test_practice.py::test_context_has_no_conviction_fields PASSED
 tests/test_practice.py::test_roleplay_and_coach_never_receive_conviction_details PASSED
 tests/test_practice.py::test_injection_in_practice_turn_blocked_by_safety_guard PASSED
 tests/test_practice.py::test_pause_word_needs_no_ai_call PASSED
+tests/test_practice.py::test_record_denial_is_caught_in_spanish_and_portuguese PASSED
 tests/test_audit_privacy.py::test_typed_names_are_scrubbed_before_intake_reads_them PASSED
 tests/test_audit_privacy.py::test_known_first_name_is_scrubbed_everywhere_in_a_row PASSED
 tests/test_budget.py::test_daily_cap_stops_every_session PASSED
 tests/test_budget.py::test_daily_cap_rebuilt_from_log_after_restart PASSED
 tests/test_budget.py::test_session_cap_still_applies_under_daily_cap PASSED
 tests/test_budget.py::test_daily_cap_shows_daily_message_before_any_ai_call PASSED
-============================== 32 passed in 0.10s ==============================
+tests/test_language.py::test_agents_are_told_to_write_in_the_site_language PASSED
+============================== 36 passed in 0.13s ==============================

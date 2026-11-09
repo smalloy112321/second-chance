@@ -1,0 +1,122 @@
+{
+ "note": "Distinct planner runs on the local server, Nov 9 2026 (UTC times). Counted up to each run's last verifier call (Practice turns excluded). Language read from the plan text.",
+ "runs": [
+  {
+   "session": "2809e6eb",
+   "start": "2026-11-09T14:51:02+00:00",
+   "lang": "en",
+   "flow": "one-pass",
+   "calls": 6,
+   "input": 18015,
+   "cached_input": 2904,
+   "output": 4065,
+   "total": 22080,
+   "cost_usd": 0.00357,
+   "revised": false
+  },
+  {
+   "session": "dac9c55d",
+   "start": "2026-11-09T14:52:48+00:00",
+   "lang": "en",
+   "flow": "one-pass",
+   "calls": 6,
+   "input": 20322,
+   "cached_input": 6655,
+   "output": 4613,
+   "total": 24935,
+   "cost_usd": 0.00374,
+   "revised": false
+  },
+  {
+   "session": "062b0e8b",
+   "start": "2026-11-09T15:27:31+00:00",
+   "lang": "en",
+   "flow": "one-pass",
+   "calls": 9,
+   "input": 34733,
+   "cached_input": 11579,
+   "output": 8375,
+   "total": 43108,
+   "cost_usd": 0.00662,
+   "revised": true
+  },
+  {
+   "session": "40e621c8",
+   "start": "2026-11-09T15:30:34+00:00",
+   "lang": "pt",
+   "flow": "one-pass",
+   "calls": 6,
+   "input": 18438,
+   "cached_input": 2976,
+   "output": 3071,
+   "total": 21509,
+   "cost_usd": 0.00311,
+   "revised": false
+  },
+  {
+   "session": "aa26a625",
+   "start": "2026-11-09T18:40:21+00:00",
+   "lang": "en",
+   "flow": "two-step",
+   "calls": 7,
+   "input": 18861,
+   "cached_input": 8449,
+   "output": 3963,
+   "total": 22824,
+   "cost_usd": 0.00311,
+   "revised": false
+  },
+  {
+   "session": "53477090",
+   "start": "2026-11-09T18:57:38+00:00",
+   "lang": "en",
+   "flow": "one-pass",
+   "calls": 6,
+   "input": 20523,
+   "cached_input": 1351,
+   "output": 5104,
+   "total": 25627,
+   "cost_usd": 0.00448,
+   "revised": false
+  },
+  {
+   "session": "72178441",
+   "start": "2026-11-09T18:57:50+00:00",
+   "lang": "es",
+   "flow": "two-step",
+   "calls": 8,
+   "input": 25886,
+   "cached_input": 7982,
+   "output": 5179,
+   "total": 31065,
+   "cost_usd": 0.00446,
+   "revised": false
+  },
+  {
+   "session": "562df4d1",
+   "start": "2026-11-09T18:57:51+00:00",
+   "lang": "en",
+   "flow": "two-step",
+   "calls": 7,
+   "input": 18711,
+   "cached_input": 8451,
+   "output": 3450,
+   "total": 22161,
+   "cost_usd": 0.00284,
+   "revised": false
+  },
+  {
+   "session": "007196e0",
+   "start": "2026-11-09T18:57:51+00:00",
+   "lang": "pt",
+   "flow": "two-step",
+   "calls": 10,
+   "input": 34846,
+   "cached_input": 11674,
+   "output": 6094,
+   "total": 40940,
+   "cost_usd": 0.00548,
+   "revised": true
+  }
+ ]
+}

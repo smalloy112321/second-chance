@@ -48,3 +48,22 @@ Guardrails on spending already in the app: a 150,000-token cap per session and a
 4. **Contact details never go to the model.** The model only sees resource ids and names; phone numbers, addresses and notes are filled in from the checked list. That means fewer tokens and no invented phone numbers.
 
 Quality checks that don't depend on the model: Clean Slate results come from the rules engine (same answer every time for the same facts), and contact details come from the checked list. The model-written plan is checked by the verifier on every run (10 of 12 approved, 2 flagged for human review), so a weaker plan is caught rather than shown as if it were fine.
+
+## Update: after the November 9 changes (two-step self-serve, three languages)
+
+On November 9 self-serve was split into two steps (the record check first, then the plan after she adds her goals), the planner's instructions gained three lines, and the site gained Spanish and Portuguese. Fresh local runs the same day (Portkey replays excluded the same way):
+
+| Run | Model calls | Total tokens | Cost |
+|---|---|---|---|
+| English self-serve, two-step, no revision (2 runs) | 7 | 22,161 – 22,824 | $0.0028 – $0.0031 |
+| Spanish self-serve, two-step | 8 | 31,065 | $0.0045 |
+| Portuguese self-serve, two-step, one revision | 10 | 40,940 | $0.0055 |
+| Caseworker, one pass | 6 | 25,627 | $0.0045 |
+| English one-pass runs earlier that day (3 runs; one revised) | 6 – 9 | 22,080 – 43,108 | $0.0036 – $0.0066 |
+
+What changed:
+- **The two-step flow did not raise the cost.** It adds one small safety check on her goals (about 1,000 tokens), but the English self-serve runs came in at about $0.003, slightly below the earlier median of $0.0037.
+- **Spanish and Portuguese cost more**, roughly 1.4–1.8 times English in these few runs: answers in those languages use more tokens, and the agents get a short language instruction. Per user that is still about 1–2 cents a month.
+- **Revisions are still the biggest swing.** A run where the verifier sends the plan back once costs about 1.5–2 times a run that passes first time.
+
+These are small samples (one to two runs per row); treat them as indicative. Raw numbers: `docs/evidence/token-runs-nov9.json`.

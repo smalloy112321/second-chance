@@ -560,3 +560,4 @@ main { flex: 1; }
 .letter-help { margin: 0 0 0.5rem; font-size: 0.88rem; color: var(--ink-soft); }
 .letter-panel textarea { width: 100%; font: 0.92rem/1.5 ui-monospace, Menlo, monospace; border: 1.5px solid var(--tint-strong); border-radius: 0.6rem; padding: 0.6rem 0.7rem; resize: vertical; color: var(--ink); background: var(--bg); }
 .letter-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.resource-contact a { display: inline-block; padding: 0.3rem 0; }  /* taller tap targets on phones */
