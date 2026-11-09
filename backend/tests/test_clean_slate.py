@@ -180,3 +180,14 @@ def test_rows_include_conviction_date_for_display():
     rows = by_id(r)
     assert rows["c1"]["conviction_date"] == "2012-03-01"
     assert rows["c2"]["conviction_date"] is None
+
+
+def test_rows_say_why_in_plain_words_and_name_the_missing_date():
+    from rules.clean_slate import Conviction
+    no_offense = Conviction(id="bop", description="breach of peace", level="misdemeanor", offense_date=None,
+                            conviction_date=date(2022, 7, 1), is_family_violence=False, is_sex_offense=False)
+    rows = by_id(evaluate(person(no_offense)))
+    assert rows["bop"]["reason_code"] == "NEEDS_REVIEW_DATE_UNKNOWN"
+    assert rows["bop"]["why"].startswith("The year the offense happened is unknown (the conviction date is known)")
+    old = by_id(evaluate(person(conv(convicted=date(2012, 3, 1)))))["c1"]
+    assert old["why"] == "The waiting period has passed."

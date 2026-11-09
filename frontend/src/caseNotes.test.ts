@@ -15,9 +15,11 @@ IDs: has birth certificate and Social Security card, no state ID.
 Not working. Interested in CNA training or warehouse work.
 Goals: get a state ID, find stable housing, increase visits with her kids.`
 
-test('the live notes that failed are missing exactly DUI and cannabis', () => {
-  assert.deepEqual(notMentioned(DENISE), ['DUI (yes or no)', 'Cannabis possession (yes or no)'])
-  assert.deepEqual(notMentioned(DENISE + '\nNone of the convictions were DUI or cannabis.'), [])
+test('the live notes that failed are missing DUI, cannabis, and conviction 3\'s offense year', () => {
+  assert.deepEqual(notMentioned(DENISE), ['DUI (yes or no)', 'Cannabis possession (yes or no)', 'Conviction 3: year it happened'])
+  assert.deepEqual(notMentioned(DENISE + '\nNone of the convictions were DUI or cannabis.'), ['Conviction 3: year it happened'])
+  const fixed = DENISE.replace('convicted 2022 - not family violence', 'offense 2021, convicted 2022 - not family violence')
+  assert.deepEqual(notMentioned(fixed + '\nNone of the convictions were DUI or cannabis.'), [])
 })
 
 test('an empty box or an unfilled template lists nothing yet', () => {
@@ -31,4 +33,12 @@ test('the template hint words do not count as answers', () => {
   assert.ok(!missing.includes('Town'))
   assert.ok(missing.includes('DUI (yes or no)'))
   assert.ok(missing.includes('Family violence'))
+})
+
+test('template lines are checked one conviction at a time', () => {
+  const notes = CASE_NOTES_TEMPLATE
+    .replace(/^Conviction 1:.*$/m, 'Conviction 1: shoplifting / misdemeanor / happened 2012 / convicted 2012 / DUI no / cannabis no')
+    .replace(/^Conviction 2:.*$/m, 'Conviction 2: drug sale, 2016')
+  const gaps = notMentioned(notes).filter((g) => g.startsWith('Conviction'))
+  assert.deepEqual(gaps, ['Conviction 2: misdemeanor or felony, year it happened and year convicted (or say they were the same year)'])
 })

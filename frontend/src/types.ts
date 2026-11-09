@@ -99,24 +99,9 @@ export type ChatMessage =
   | { role: 'error'; text: string }
 
 export const AGENTS = ['safety_guard', 'intake', 'screener', 'planner', 'verifier'] as const
-export const PRACTICE_AGENTS = ['safety_guard', 'coach', 'roleplay', 'coach_summary'] as const
 export type AgentName = string
 
-export const AGENT_LABEL: Record<string, string> = {
-  safety_guard: 'Safety guard',
-  intake: 'Intake',
-  screener: 'Clean Slate screener',
-  planner: 'Pathway planner',
-  verifier: 'Verifier',
-  coach: 'Coach',
-  roleplay: 'Role-play partner',
-  coach_summary: 'Session summary',
-  app: 'App',
-}
-
 export type AgentState = { status: 'idle' | 'running' | 'done' | 'blocked'; summary: string; tokens: number }
-
-export type ActivityItem = { id: number; agent: string; kind: 'start' | 'done' | 'tool' | 'issue' | 'block' | 'error'; text: string }
 
 export type Usage = {
   overall: Tokens & { estimated_cost_usd: number }

@@ -497,7 +497,7 @@ function Coach({ card, open }: { card: CoachCard; open: boolean }) {
         <div className="legal-fact">
           <strong>Good to know</strong>
           <p>{card.legal_fact.text}</p>
-          <a href={card.legal_fact.source} target="_blank" rel="noreferrer">
+          <a href={card.legal_fact.source} target="_blank" rel="noreferrer" aria-label="Source for this legal fact (opens in a new tab)">
             Source
           </a>
         </div>

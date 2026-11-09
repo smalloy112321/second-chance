@@ -64,7 +64,7 @@ async def get_screener_result(rc: RunContext[PlannerDeps]) -> dict:
         "overall": rules.get("overall"),
         "eligible_on_earliest": rules.get("eligible_on_earliest"),
         "convictions": [
-            {k: c[k] for k in ("id", "status", "eligible_on", "reason_code")}
+            {k: c.get(k) for k in ("id", "status", "eligible_on", "reason_code", "why")}
             for c in rules.get("convictions", [])
         ],
         "next_step_codes": s.screener.next_step_codes if s.screener else [],

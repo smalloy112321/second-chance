@@ -53,5 +53,37 @@ export function notMentioned(notes: string): string[] {
     .split(CONVICTION_HINT)
     .join('')
   if (!text.replace(/[A-Za-z0-9 ()?,/']*:\s*$/gm, '').trim()) return []
-  return CHECKS.filter((c) => !c.pattern.test(text)).map((c) => c.label)
+  return [...CHECKS.filter((c) => !c.pattern.test(text)).map((c) => c.label), ...convictionGaps(text)]
+}
+
+const YEAR = /\b(19|20)\d\d\b/g
+const OFFENSE_YEAR = /(offen[cs]e|happened|arrest\w*|incident|committed)\D{0,25}\b(19|20)\d\d\b/i
+const CONVICTED_YEAR = /(convict\w*|sentenc\w*|plea\w*|pled)\D{0,25}\b(19|20)\d\d\b/i
+
+/** Each conviction in the notes: "(1) ... (2) ..." items, or "Conviction 1: ..." lines. */
+export function convictionSegments(text: string): string[] {
+  const lines = text.split('\n').filter((l) => /^\s*conviction\s*\d+\s*:/i.test(l))
+  if (lines.length) return lines.map((l) => l.replace(/^\s*conviction\s*\d+\s*:\s*/i, '')).filter((l) => l.trim())
+  const parts = text.split(/\(\d\)/)
+  if (parts.length < 2) return []
+  // The last item runs to the end of its line (the notes go on to other facts after it).
+  return parts.slice(1).map((p, i, all) => (i === all.length - 1 ? p.split('\n')[0] : p))
+}
+
+/** What each conviction is missing: "Conviction 3: year it happened". */
+export function convictionGaps(text: string): string[] {
+  const gaps: string[] = []
+  convictionSegments(text).forEach((seg, i) => {
+    const years = seg.match(YEAR) ?? []
+    const missing: string[] = []
+    if (!/misdemeanor|felony/i.test(seg)) missing.push('misdemeanor or felony')
+    if (years.length === 0) missing.push('year it happened', 'year convicted')
+    else if (years.length === 1) {
+      if (CONVICTED_YEAR.test(seg) && !OFFENSE_YEAR.test(seg)) missing.push('year it happened')
+      else if (OFFENSE_YEAR.test(seg) && !CONVICTED_YEAR.test(seg)) missing.push('year convicted')
+      else if (!OFFENSE_YEAR.test(seg) && !CONVICTED_YEAR.test(seg)) missing.push('year it happened and year convicted (or say they were the same year)')
+    }
+    if (missing.length) gaps.push(`Conviction ${i + 1}: ${missing.join(', ')}`)
+  })
+  return gaps
 }

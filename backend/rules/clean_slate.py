@@ -72,6 +72,40 @@ PLAIN_MEANING = {
     "not_yet_sentence": "Once your supervision ends and with no new convictions, your clock continues. Estimated date: {eligible_on}",
 }
 
+# Why a conviction got its result, in plain words (given to the agents with each row so they don't
+# have to guess what a reason code means). NEEDS_REVIEW_DATE_UNKNOWN is split by which date is missing.
+REASON_TEXT = {
+    "NEEDS_REVIEW_DUI_UNKNOWN": "We don't know whether this conviction was a DUI.",
+    "NEEDS_REVIEW_FAMILY_VIOLENCE_UNKNOWN": "We don't know whether this conviction involved family violence.",
+    "NEEDS_REVIEW_SEX_OFFENSE_UNKNOWN": "We don't know whether this conviction was a sex offense.",
+    "NEEDS_REVIEW_LEVEL_UNKNOWN": "We don't know whether this was a misdemeanor or a felony (or the felony class).",
+    "NEEDS_REVIEW_UNCLASSIFIED_MAX": "This is an unclassified felony and we don't know its longest possible sentence.",
+    "NEEDS_REVIEW_CLOCK_UNKNOWN": "Another conviction's date is unknown, so we can't tell when the waiting period started.",
+    "NEEDS_REVIEW_PERSON_UNKNOWN": "We don't know whether she is on probation or parole, has an open case, or has finished every sentence.",
+    "SUPERVISION_OR_PENDING": "She is on probation or parole or has an open case, so erasure waits until that ends.",
+    "SENTENCE_NOT_COMPLETE": "Part of a sentence is not finished, so erasure waits until it is.",
+    "FELONY_CLASS_NOT_COVERED": "Class A, B, and C felonies are not covered by Clean Slate.",
+    "EXCLUDED_FAMILY_VIOLENCE": "Family violence convictions are not covered by Clean Slate.",
+    "EXCLUDED_SEX_OFFENSE": "Sex offenses are not covered by Clean Slate.",
+    "EXCLUDED_STATUTE": "This offense is on the list of crimes Clean Slate does not cover.",
+    "DUI_REPEAT_10YR": "A second DUI within 10 years is not covered.",
+    "PRE_2000_PETITION": "Offenses from before 2000 are not erased automatically; a court petition is possible.",
+    "CANNABIS_AUTO_ERASED_2023": "Cannabis possession convictions like this were erased automatically on January 1, 2023.",
+    "CANNABIS_PETITION": "This cannabis conviction can be erased by petitioning the court.",
+}
+
+
+def reason_text(c: "Conviction", reason_code: str) -> str:
+    if reason_code == "NEEDS_REVIEW_DATE_UNKNOWN":
+        if c.conviction_date is not None and c.offense_date is None:
+            return "The year the offense happened is unknown (the conviction date is known), so the waiting period can't be checked."
+        if c.conviction_date is None and c.offense_date is not None:
+            return "The conviction date is unknown, so the waiting period can't be counted."
+        return "The offense and conviction dates are unknown, so the waiting period can't be counted."
+    if reason_code.endswith("_MET"):
+        return "The waiting period has passed." if not reason_code.endswith("_NOT_MET") else "The waiting period has not passed yet."
+    return REASON_TEXT.get(reason_code, "")
+
 
 # ---- Inputs (spec section 1) ---------------------------------------------------------------
 
@@ -157,6 +191,7 @@ def _row(c: Conviction, status: str, reason_code: str, source: str = SOURCE_ELIG
         "wait_years": wait_years,
         "eligible_on": eligible_on.isoformat() if eligible_on else None,
         "reason_code": reason_code,
+        "why": reason_text(c, reason_code),
         "plain_meaning": PLAIN_MEANING[status].format(
             eligible_on=eligible_on.isoformat() if eligible_on else "unknown"
         ),

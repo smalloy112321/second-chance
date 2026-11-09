@@ -239,39 +239,6 @@ main { flex: 1; }
 .resource-contact .label { display: inline-block; min-width: 4.5rem; color: var(--ink-soft); font-size: 0.8rem; }
 .resource-notes { margin: 0.4rem 0 0; font-size: 0.82rem; color: var(--ink-soft); }
 .resource-checked { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--ink-soft); }
-
-/* ---- Agent activity panel ---------------------------------------------------------------- */
-.agent-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 1.1rem; font-size: 0.9rem; }
-@media (min-width: 1000px) { .agent-panel { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; } }
-.panel-toggle {
-  width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: none;
-  padding: 0.85rem 1rem; font-weight: 700; color: var(--navy); font-size: 1rem;
-}
-.panel-body { padding: 0 1rem 1rem; }
-.agent-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
-.agent { display: flex; gap: 0.65rem; padding: 0.55rem 0.6rem; border-radius: 0.75rem; border: 1px solid var(--line); background: var(--bg); transition: background 0.2s, border-color 0.2s; }
-.agent-dot { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; background: var(--line); color: var(--ink-soft); }
-.agent-name { font-weight: 700; }
-.agent-status { font-weight: 500; color: var(--ink-soft); font-size: 0.8rem; margin-left: 0.25rem; }
-.agent-summary { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.1rem; }
-.agent-tokens { font-size: 0.75rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.agent-running { background: var(--tint); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(88, 101, 220, 0.15); }
-.agent-running .agent-dot { background: var(--accent); color: #fff; animation: pulse 1.1s ease-in-out infinite; }
-.agent-done { background: #f6f7fe; border-color: var(--tint-strong); }
-.agent-done .agent-dot { background: var(--navy); color: #fff; }
-.agent-blocked { background: #fdf0d8; border-color: #efd29c; }
-.agent-blocked .agent-dot { background: #b06a10; color: #fff; }
-@keyframes pulse { 50% { transform: scale(1.15); } }
-@media (prefers-reduced-motion: reduce) { .agent-running .agent-dot { animation: none; } }
-.log-title { font-size: 0.85rem; margin: 1rem 0 0.4rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
-.activity-log { list-style: none; padding: 0; margin: 0; font-family: ui-monospace, Menlo, monospace; font-size: 0.75rem; display: grid; gap: 0.3rem; max-height: 22rem; overflow: auto; }
-.activity-log li { padding: 0.25rem 0.4rem; border-radius: 0.35rem; background: var(--bg); word-break: break-word; }
-.log-agent { font-weight: 700; color: var(--navy); }
-.log-tool { color: #3a44b0; }
-.log-issue, .log-block { background: #fdf0d8 !important; color: #7a4a06; }
-.log-error { background: var(--error-bg) !important; color: var(--error-ink); }
-.log-empty { color: var(--ink-soft); font-family: system-ui, sans-serif; }
-
 /* ---- Print (caseworker "Print plan") ------------------------------------------------------ */
 @media print {
   :root { font-size: 12pt; background: #fff; }
@@ -541,3 +508,10 @@ main { flex: 1; }
   .choice { padding-left: 1.2rem; padding-right: 1.2rem; }
   .choice-sub { font-size: clamp(12.5px, calc(1.17vw - 2.6px), 16px); white-space: nowrap; }  /* grows with the cards, up to the normal size */
 }
+
+/* ---- Accessibility pass (Nov 9): contrast and tap targets ---- */
+.qa-checklist { color: var(--ink-soft); }                       /* pending steps: 7:1 instead of 3.1:1 */
+.scenario-reason { color: var(--accent-hover); }                /* 4.27:1 -> above 4.5:1 on the lavender card */
+.legal-fact a { color: var(--navy); display: inline-block; padding: 0.4rem 0; font-size: 0.9rem; }
+.plan-contact-links a { display: inline-block; padding: 0.3rem 0; }  /* taller tap targets on phones */
+@media (max-width: 600px) { .toolbar-right { align-items: flex-start; } }  /* stacked under the mode label on phones: line up on the left */
