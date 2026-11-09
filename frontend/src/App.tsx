@@ -323,6 +323,9 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   }
 
   const firstCaseworkerTurn = caseworker && messages.length === 1
+  // Someone who came in through "I want to practice a conversation" sees that label until they
+  // start building a plan (then it's the planner, "I'm planning for myself").
+  const modeLabel = !caseworker && launch.view === 'practice' && view === 'practice' && !result ? 'I want to practice' : MODE_LABEL[mode]
   const missingFacts = firstCaseworkerTurn ? notMentioned(input) : []
   const caseStep = view === 'practice' ? 4 : result ? 2 : busy || messages.length > 1 ? 1 : 0
   const backLabel = result ? (caseworker ? 'Back to the plan' : 'Back to my plan') : 'Build my plan'
@@ -337,7 +340,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
     <Shell footer={footer} onHome={changeMode}>
       <div className="toolbar no-print">
         <p className="mode-pill">
-          {MODE_LABEL[mode]}
+          {modeLabel}
           <button type="button" className="link-button" onClick={changeMode}>
             Change
           </button>
