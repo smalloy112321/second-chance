@@ -535,3 +535,9 @@ main { flex: 1; }
 .site-footer { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; }
 .footer-text { min-width: 0; }
 .site-footer .logo-mark { flex: none; margin-bottom: 0.25rem; }
+/* homepage cards on laptops and up: all three descriptions the same size, each on one line.
+   The size follows the card width (the longest line is the practice card's). */
+@media (min-width: 1280px) {
+  .choice { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .choice-sub { font-size: clamp(12.5px, calc(1.17vw - 2.6px), 16px); white-space: nowrap; }  /* grows with the cards, up to the normal size */
+}

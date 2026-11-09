@@ -213,7 +213,7 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
               I want to practice
               <br />a conversation
             </span>
-            <span className="choice-sub">Practice with a boss, landlord, or social worker.</span>
+            <span className="choice-sub">Practice with a hiring manager, landlord, or social worker.</span>
             <span className="choice-cta">Get started →</span>
           </button>
         </div>
