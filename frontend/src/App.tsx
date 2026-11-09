@@ -4,6 +4,7 @@ import ExamplesPage from './ExamplesPage'
 import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { PLAN_DONE_PREFIX } from './PlanView'
+import { stayHere, useHistoryStep } from './historyStep'
 import { ProgressSteps, WorkingCard } from './SelfServeFlow'
 import { CASE_NOTES_TEMPLATE, notMentioned } from './caseNotes'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
@@ -35,6 +36,8 @@ const GREETING: Record<Mode, string> = {
   caseworker:
     'Paste your case notes about the client below, or start from the template. For each conviction, include the year, misdemeanor or felony, and whether it was a DUI or cannabis possession. I will pull out what I can and ask for anything missing.',
 }
+
+const LEAVE_MESSAGE = 'Go back to the start? The results and 30-day plan on this page will be cleared.'
 
 const CASEWORKER_STEPS = ['Case notes', 'Record check', 'Results', '30-day plan', 'Practice'] as const
 
@@ -75,9 +78,32 @@ export default function App() {
   }
   const leave = () => {
     sessionStorage.removeItem(MODE_KEY)
-    if (location.search) history.replaceState(null, '', location.pathname)
+    if (location.search) history.replaceState(history.state, '', location.pathname)
     setMode(null)
   }
+
+  // Browser Back from the first screen of any path returns to the homepage. If there are results
+  // (or the agents are still working), ask first, because leaving clears them.
+  const hasWork = useRef(false)
+  useHistoryStep<string | null>(
+    'entry',
+    mode ? `${mode}:${launch.view}` : null,
+    (v) => {
+      if (v === null) return leave()
+      const [m, view] = v.split(':') as [Mode, Launch['view']]
+      choose(m, view)
+    },
+    null,
+    {
+      fresh: true,
+      allow: (next) => {
+        if (next !== null || !hasWork.current) return true
+        if (window.confirm(LEAVE_MESSAGE)) return true
+        stayHere()
+        return false
+      },
+    },
+  )
 
   if (new URLSearchParams(location.search).has('examples')) {
     return (
@@ -88,7 +114,7 @@ export default function App() {
   }
 
   return mode ? (
-    <Workspace key={`${mode}-${launch.view}`} mode={mode} launch={launch} onChangeMode={leave} />
+    <Workspace key={`${mode}-${launch.view}`} mode={mode} launch={launch} onChangeMode={leave} hasWork={hasWork} />
   ) : (
     <Landing onChoose={choose} />
   )
@@ -193,7 +219,9 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
   )
 }
 
-function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch; onChangeMode: () => void }) {
+function Workspace({
+  mode, launch, onChangeMode, hasWork,
+}: { mode: Mode; launch: Launch; onChangeMode: () => void; hasWork: { current: boolean } }) {
   const caseworker = mode === 'caseworker'
   const [sessionId, setSessionId] = useState(() => launch.sessionId ?? newSessionId())
   const [view, setView] = useState<Launch['view']>(launch.view)
@@ -308,6 +336,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   const clearAll = useCallback(async () => {
     await clearSession(sessionId)
     Object.keys(sessionStorage).filter((k) => k.startsWith(PLAN_DONE_PREFIX)).forEach((k) => sessionStorage.removeItem(k))
+    history.replaceState({ entry: history.state?.entry ?? null }, '') // start the steps over
     setSessionId(newSessionId())
     setMessages([{ role: 'assistant', text: GREETING[mode] }])
     setResult(null)
@@ -323,6 +352,16 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   }
 
   const firstCaseworkerTurn = caseworker && messages.length === 1
+  hasWork.current = !!result || busy
+  useHistoryStep<Launch['view']>('view', view, setView, launch.view)
+  useHistoryStep<boolean>('cw', cwStarted, setCwStarted, false, {
+    allow: (next) => {
+      if (next || (!result && messages.length === 1)) return true
+      if (window.confirm(LEAVE_MESSAGE)) void changeMode()
+      else stayHere()
+      return false
+    },
+  })
   // Someone who came in through "I want to practice a conversation" sees that label until they
   // start building a plan (then it's the planner, "I'm planning for myself").
   const modeLabel = !caseworker && launch.view === 'practice' && view === 'practice' && !result ? 'I want to practice' : MODE_LABEL[mode]
@@ -386,6 +425,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           finished={!!result}
           db={db}
           onSubmit={(text) => void send(text)}
+          onLeave={() => void changeMode()}
           renderResults={(show, onShowPlan, onBack) =>
             result ? (
               <div ref={resultsRef}>

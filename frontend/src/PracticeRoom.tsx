@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { fetchScenarios, newSessionId, type ScenarioSuggestion, startPractice, streamPost, type StreamEvent } from './api'
+import { useHistoryStep } from './historyStep'
 import { withoutUnansweredQuestion } from './practiceDisplay'
 import { ResourceCard } from './Results'
 import {
@@ -69,6 +70,7 @@ export default function PracticeRoom({
   const [scenarioId, setScenarioId] = useState(initialScenario ?? '')
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty ?? 'friendly')
   const [stage, setStage] = useState<'choose' | 'chat'>('choose')
+  useHistoryStep<'choose' | 'chat'>('practice', stage, setStage, 'choose')
   const [items, setItems] = useState<Item[]>([])
   const [turn, setTurn] = useState(0)
   const [maxTurns, setMaxTurns] = useState(5)

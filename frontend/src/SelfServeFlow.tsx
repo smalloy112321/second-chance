@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
+import { currentStep, stayHere, useHistoryStep } from './historyStep'
+
 import {
   CONVICTION_TYPES, FELONY_CLASSES, HOUSING, HOUSING_MONTH, IDS, KIDS_COUNT, KIDS_WITH, LEVELS, QUESTIONS, STATES, YEARS,
   YES_NO, buildAnswerMessage, emptyAnswers, emptyConviction, isAnswered, needsSentenceQuestion, summary,
@@ -76,6 +78,8 @@ type Props = {
   finished: boolean
   db: Record<string, Resource>
   onSubmit: (text: string) => void
+  /** Go back to the homepage (used when Back is pressed after the answers were sent). */
+  onLeave?: () => void
   renderResults?: (show: 'slate' | 'plan', onShowPlan: () => void, onBack: () => void) => ReactNode
 }
 
@@ -128,11 +132,24 @@ function Text({ label, value, onChange, placeholder }: { label: string; value: s
   )
 }
 
-export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, renderResults }: Props) {
-  const [stage, setStage] = useState<Stage>('intro')
+export default function SelfServeFlow({ messages, busy, agents, finished, db, onSubmit, onLeave, renderResults }: Props) {
+  // A screen that comes back (e.g. after Practice) picks up where it was.
+  const [stage, setStage] = useState<Stage>(() => currentStep<Stage>('stage', 'intro'))
   const [a, setA] = useState<Answers>(emptyAnswers)
   const [followUp, setFollowUp] = useState('')
-  const [resultView, setResultView] = useState<'slate' | 'plan'>('slate')
+  const [resultView, setResultView] = useState<'slate' | 'plan'>(() => currentStep<'slate' | 'plan'>('results', 'slate'))
+  // Browser Back/Forward: question to question, review, results <-> plan. Sending the answers
+  // replaces the review entry, so Back from the results asks before leaving (the answers are sent).
+  useHistoryStep<Stage>('stage', stage, setStage, 'intro', {
+    replace: (v) => v === 'submitted',
+    allow: (next, current) => {
+      if (current !== 'submitted' || next === 'submitted') return true
+      if (window.confirm('Go back to the start? Your results and 30-day plan will be cleared.')) onLeave?.()
+      else stayHere()
+      return false
+    },
+  })
+  useHistoryStep<'slate' | 'plan'>('results', resultView, setResultView, 'slate')
   const topRef = useRef<HTMLDivElement>(null)
 
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((prev) => ({ ...prev, [k]: v }))
