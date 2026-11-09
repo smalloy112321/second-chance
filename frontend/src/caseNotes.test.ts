@@ -1,0 +1,34 @@
+// Run with: node src/caseNotes.test.ts
+import assert from 'node:assert/strict'
+import { test } from 'node:test'
+
+import { CASE_NOTES_TEMPLATE, notMentioned } from './caseNotes.ts'
+
+// The notes from the live caseworker run (Nov 8, 2026) that came back "Needs review" for every conviction.
+const DENISE = `Client: Denise R., 34, New Haven. Released from York CI in March 2025.
+Convictions: (1) Larceny 6th degree, misdemeanor, offense 2011, convicted 2011. (2) Possession of narcotics, class D felony, offense June 2016, convicted Jan 2017. (3) Breach of peace 2nd degree, misdemeanor, convicted 2022 - not family violence.
+No sex offenses. No family violence on any charge.
+Currently on probation until Sept 2027 for the 2022 case. No pending charges. Has not finished probation.
+Two children (ages 6 and 9) living with her mother in Hamden. Open DCF case; she wants more visitation. Family court date next month.
+Housing: staying with a friend in New Haven, can stay through end of the month only.
+IDs: has birth certificate and Social Security card, no state ID.
+Not working. Interested in CNA training or warehouse work.
+Goals: get a state ID, find stable housing, increase visits with her kids.`
+
+test('the live notes that failed are missing exactly DUI and cannabis', () => {
+  assert.deepEqual(notMentioned(DENISE), ['DUI (yes or no)', 'Cannabis possession (yes or no)'])
+  assert.deepEqual(notMentioned(DENISE + '\nNone of the convictions were DUI or cannabis.'), [])
+})
+
+test('an empty box or an unfilled template lists nothing yet', () => {
+  assert.deepEqual(notMentioned(''), [])
+  assert.deepEqual(notMentioned(CASE_NOTES_TEMPLATE), [])
+})
+
+test('the template hint words do not count as answers', () => {
+  const partly = CASE_NOTES_TEMPLATE.replace('Town:', 'Town: Hartford')
+  const missing = notMentioned(partly)
+  assert.ok(!missing.includes('Town'))
+  assert.ok(missing.includes('DUI (yes or no)'))
+  assert.ok(missing.includes('Family violence'))
+})

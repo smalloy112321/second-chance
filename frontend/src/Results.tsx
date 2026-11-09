@@ -1,4 +1,5 @@
 import PlanView from './PlanView'
+import { stepLabel } from './planDisplay'
 import { convictedLine, erasureLine, overallBadge, statusLabel, waitingNote } from './resultsDisplay'
 import type { Mode, Resource, ResultPayload } from './types'
 
@@ -83,9 +84,15 @@ export default function Results({
         </div>
       </div>
 
+      {show === 'all' && (
+        <nav className="jump-links no-print" aria-label="On this page">
+          Jump to: <a href="#clean-slate">Clean Slate check</a> · <a href="#plan-30">30-day plan</a>
+        </nav>
+      )}
+
       {show !== 'plan' && (
         <>
-      <article className="card slate-card">
+      <article className="card slate-card" id="clean-slate">
         {simple ? null : (
           <>
             <div className="slate-top">
@@ -93,14 +100,16 @@ export default function Results({
               <Badge status={overallBadge(result.rules)} />
             </div>
             <p className="headline">{result.screener.headline}</p>
-            <p className="explanation">{result.screener.explanation}</p>
+            {/* Caseworkers see the per-conviction cards (with reason codes) right below, so the long
+                explanation would repeat them. */}
+            {!caseworker && <p className="explanation">{result.screener.explanation}</p>}
           </>
         )}
 
         <ul className="conviction-list">
           {result.rules.convictions.map((c) => {
             const later = erasureLine(c)
-            const note = waitingNote(c)
+            const note = waitingNote(c, new Date(), caseworker ? 'client' : 'you')
             return (
               <li key={c.id}>
                 <div className="conviction-desc">{c.description}</div>
@@ -184,7 +193,7 @@ export default function Results({
               ← Back to my results
             </button>
           )}
-      {show !== 'plan' && <h3 className="plan-title">30-day plan</h3>}
+      {show !== 'plan' && <h3 className="plan-title" id="plan-30">30-day plan</h3>}
       {result.needs_human_review && (
         <div className="review-banner" role="alert">
           <strong>Needs human review.</strong> Our checker still found problems after one revision. Please review this
@@ -192,7 +201,7 @@ export default function Results({
           <ul>
             {result.verifier.issues.map((i, n) => (
               <li key={n}>
-                {i.step_id ? `${i.step_id}: ` : ''}
+                {stepLabel(result.plan.weeks, i.step_id) && <strong>{stepLabel(result.plan.weeks, i.step_id)}: </strong>}
                 {i.problem}
               </li>
             ))}

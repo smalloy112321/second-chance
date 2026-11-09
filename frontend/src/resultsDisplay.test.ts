@@ -50,6 +50,11 @@ test('a past waiting date is never shown; the note says what she is waiting on',
   assert.equal(waitingNote(later, TODAY), null)
 })
 
+test('caseworkers read "the client", not "you"', () => {
+  assert.equal(waitingNote(onProbationFuture, TODAY, 'client'), "This can only happen once the client's probation or parole ends and any open case is closed.")
+  assert.match(waitingNote(onProbation, TODAY, 'client')!, /^The waiting period is over\. .* if the client has no new convictions\.$/)
+})
+
 test('the caseworker badge says waiting, not "later date", when nothing is expected later', () => {
   assert.equal(overallBadge({ overall: 'eligible_on', convictions: [onProbation] }), 'not_yet_supervision')
   assert.equal(overallBadge({ overall: 'eligible_on', convictions: [later] }), 'eligible_on')

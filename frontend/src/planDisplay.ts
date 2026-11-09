@@ -49,6 +49,19 @@ export function repeatedResources(weeks: WeekLike[]): Record<string, number> {
   return repeats
 }
 
+/** "Week 4, step 2 (Search for food service openings…)" for a step id like "w4s2". */
+export function stepLabel(weeks: { week: number; steps: { step_id: string; action: string }[] }[], stepId: string | null): string {
+  if (!stepId) return ''
+  for (const w of weeks) {
+    const i = w.steps.findIndex((s) => s.step_id === stepId)
+    if (i >= 0) {
+      const a = w.steps[i].action
+      return `Week ${w.week}, step ${i + 1} (${a.length > 60 ? a.slice(0, 57).trimEnd() + '…' : a})`
+    }
+  }
+  return ''
+}
+
 /** "3 of 10 steps done" */
 export function progressText(done: number, total: number): string {
   return `${done} of ${total} ${total === 1 ? 'step' : 'steps'} done`

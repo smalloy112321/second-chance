@@ -61,18 +61,22 @@ export function erasureLine(c: RulesConvictionLike, today: Date = new Date()): s
   return null
 }
 
-function whatShesWaitingOn(c: RulesConvictionLike): string {
-  if (c.status === 'not_yet_sentence') return 'every part of your sentence is finished'
-  return 'your probation or parole ends and any open case is closed'
+export type Voice = 'you' | 'client'
+
+function whatShesWaitingOn(c: RulesConvictionLike, voice: Voice): string {
+  const whose = voice === 'client' ? "the client's" : 'your'
+  if (c.status === 'not_yet_sentence') return `every part of ${whose} sentence is finished`
+  return `${whose} probation or parole ends and any open case is closed`
 }
 
-/** A plain-language line for waiting statuses (null for everything else). */
-export function waitingNote(c: RulesConvictionLike, today: Date = new Date()): string | null {
+/** A plain-language line for waiting statuses (null for everything else). Caseworkers get "the client". */
+export function waitingNote(c: RulesConvictionLike, today: Date = new Date(), voice: Voice = 'you'): string | null {
   if (!WAITING.has(c.status)) return null
   if (waitPassed(c, today)) {
-    return `Your waiting period is over. This could be erased once ${whatShesWaitingOn(c)}, if you have no new convictions.`
+    const who = voice === 'client' ? ['The', 'the client has'] : ['Your', 'you have']
+    return `${who[0]} waiting period is over. This could be erased once ${whatShesWaitingOn(c, voice)}, if ${who[1]} no new convictions.`
   }
-  return `This can only happen once ${whatShesWaitingOn(c)}.`
+  return `This can only happen once ${whatShesWaitingOn(c, voice)}.`
 }
 
 /**

@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import AgentPanel from './AgentPanel'
 import ExamplesPage from './ExamplesPage'
 import Logo from './Logo'
 import PracticeRoom from './PracticeRoom'
 import { PLAN_DONE_PREFIX } from './PlanView'
-import { ProgressSteps } from './SelfServeFlow'
+import { ProgressSteps, WorkingCard } from './SelfServeFlow'
+import { CASE_NOTES_TEMPLATE, notMentioned } from './caseNotes'
 import { clearSession, fetchResources, fetchUsage, newSessionId, streamChat, type StreamEvent } from './api'
 import Results, { ResourceCard } from './Results'
 import SelfServeFlow from './SelfServeFlow'
 import {
   AGENTS,
-  type ActivityItem,
   type AgentName,
   type AgentState,
   type ChatMessage,
@@ -34,8 +33,10 @@ const GREETING: Record<Mode, string> = {
   self_serve:
     "Hi, I'm glad you're here. I'll ask you a few questions, one at a time, to check your record and build a 30-day plan. You can say \"skip\" or \"I don't know\" to any question. When you're ready, say hello.",
   caseworker:
-    'Paste your case notes about the client below (town, convictions with dates, supervision, children, housing, IDs, goals). I will pull out what I can and ask for anything missing.',
+    'Paste your case notes about the client below, or start from the template. For each conviction, include the year, misdemeanor or felony, and whether it was a DUI or cannabis possession. I will pull out what I can and ask for anything missing.',
 }
+
+const CASEWORKER_STEPS = ['Case notes', 'Record check', 'Results', '30-day plan', 'Practice'] as const
 
 const freshAgents = (): Record<AgentName, AgentState> =>
   Object.fromEntries(AGENTS.map((a) => [a, { status: 'idle', summary: '', tokens: 0 }])) as Record<AgentName, AgentState>
@@ -198,14 +199,12 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   const [view, setView] = useState<Launch['view']>(launch.view)
   const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', text: GREETING[mode] }])
   const [input, setInput] = useState('')
+  const [cwStarted, setCwStarted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<ResultPayload | null>(null)
   const [agents, setAgents] = useState(freshAgents)
-  const [activity, setActivity] = useState<ActivityItem[]>([])
-  const [panelOpen, setPanelOpen] = useState(caseworker)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [db, setDb] = useState<Record<string, Resource>>({})
-  const nextId = useRef(0)
   const bottom = useRef<HTMLDivElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
@@ -221,8 +220,6 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
     if (result) resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [result])
 
-  const log = (agent: string, kind: ActivityItem['kind'], text: string) =>
-    setActivity((a) => [...a, { id: nextId.current++, agent, kind, text }])
 
   const setAgent = (name: string, patch: (s: AgentState) => Partial<AgentState>) =>
     setAgents((all) =>
@@ -255,7 +252,6 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
     switch (event) {
       case 'agent_started':
         setAgent(data.agent, () => ({ status: 'running' }))
-        log(data.agent, 'start', 'started')
         break
       case 'agent_done':
         setAgent(data.agent, (s) => ({
@@ -263,25 +259,16 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           summary: data.summary,
           tokens: s.tokens + (data.tokens?.total_tokens ?? 0),
         }))
-        log(data.agent, 'done', `${data.summary} · ${(data.tokens?.total_tokens ?? 0).toLocaleString()} tokens`)
         break
       case 'tool_called': {
-        const args = Object.entries(data.args ?? {})
-          .filter(([, v]) => v !== null && v !== undefined)
-          .map(([k, v]) => `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
-          .join(', ')
-        log(data.agent, 'tool', `→ ${data.name}(${args})`)
         break
       }
       case 'verifier_issue':
-        log('verifier', 'issue', `${data.source === 'code' ? 'Code check' : 'AI check'}: ${data.check}: ${data.problem}`)
         break
       case 'safety_block':
         setAgent('safety_guard', () => ({ status: 'blocked', summary: data.status }))
-        log('safety_guard', 'block', `blocked: ${data.status}`)
         break
       case 'error':
-        log('app', 'error', data.message)
         if (data.kind !== 'limit') setMessages((m) => [...m, { role: 'error', text: data.message }])
         break
       case 'final':
@@ -325,9 +312,9 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
     setMessages([{ role: 'assistant', text: GREETING[mode] }])
     setResult(null)
     setAgents(freshAgents())
-    setActivity([])
     setUsage(null)
     setInput('')
+    setCwStarted(false)
   }, [sessionId, mode])
 
   const changeMode = async () => {
@@ -336,6 +323,8 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
   }
 
   const firstCaseworkerTurn = caseworker && messages.length === 1
+  const missingFacts = firstCaseworkerTurn ? notMentioned(input) : []
+  const caseStep = view === 'practice' ? 4 : result ? 2 : busy || messages.length > 1 ? 1 : 0
   const backLabel = result ? (caseworker ? 'Back to the plan' : 'Back to my plan') : 'Build my plan'
   const footer = usage && caseworker ? (
     <p className="usage-meter">
@@ -355,7 +344,7 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
         </p>
         <div className="toolbar-right">
           <button type="button" className="btn btn-quiet" onClick={clearAll} disabled={busy}>
-            Clear my info
+            {caseworker ? 'Clear the info' : 'Clear my info'}
           </button>
           {view === 'practice' && (
             <button type="button" className="btn btn-quiet" onClick={() => setView('plan')}>
@@ -364,6 +353,12 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           )}
         </div>
       </div>
+
+      {caseworker && (view === 'practice' ? !!result : true) && (
+        <div className="cw-steps no-print">
+          <ProgressSteps current={caseStep} labels={CASEWORKER_STEPS} />
+        </div>
+      )}
 
       {view === 'practice' ? (
         <div className={caseworker ? undefined : 'qa qa-practice'}>
@@ -405,6 +400,18 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           }
         />
       ) : (
+      !cwStarted && !result && messages.length === 1 ? (
+        <section className="qa-card cw-intro">
+          <h2 className="qa-question">Let’s check your client’s record.</h2>
+          <p className="qa-intro">
+            Paste your case notes or fill in the template, then submit. Adding notes takes a few minutes, and the record
+            check and 30-day plan take about 2 more minutes. You can clear the info at any time. Ready to get started?
+          </p>
+          <button type="button" className="qa-choice qa-start" onClick={() => setCwStarted(true)}>
+            Let’s get started
+          </button>
+        </section>
+      ) : (
       <div className={`workspace ${caseworker ? 'is-caseworker' : 'is-self'}`}>
         <div className="workspace-main">
           <section className="chat no-print" aria-label="Conversation">
@@ -425,17 +432,13 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
                   )}
                 </li>
               ))}
-              {busy && (
-                <li className="msg msg-assistant msg-typing" aria-live="polite">
-                  <span className="spinner" aria-hidden="true" /> Working on it…
-                </li>
-              )}
             </ol>
+            {busy && <WorkingCard agents={agents} client />}
             <div ref={bottom} />
 
-            {!result && (
+            {!result && !busy && (
               <form
-                className="composer"
+                className="composer composer-stacked"
                 onSubmit={(e) => {
                   e.preventDefault()
                   void send()
@@ -459,9 +462,28 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
                   placeholder={firstCaseworkerTurn ? 'Paste case notes here…' : 'Type your answer…'}
                   disabled={busy}
                 />
-                <button type="submit" className="btn" disabled={busy || !input.trim()}>
-                  {firstCaseworkerTurn ? 'Read notes' : 'Send'}
-                </button>
+                <div className="composer-row">
+                  <button type="submit" className="btn" disabled={busy || !input.trim()}>
+                    Submit
+                  </button>
+                  {firstCaseworkerTurn && !input.trim() && (
+                    <button type="button" className="btn btn-quiet" onClick={() => setInput(CASE_NOTES_TEMPLATE)}>
+                      Use the template
+                    </button>
+                  )}
+                </div>
+                {firstCaseworkerTurn && (
+                  <div className="notes-help">
+                    {missingFacts.length > 0 && (
+                      <p className="notes-missing" aria-live="polite">
+                        <strong>Not mentioned yet:</strong> {missingFacts.join(' · ')}
+                        <span className="notes-missing-why">
+                          {' '}Without these, some convictions may come back “Needs review”.
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                )}
               </form>
             )}
           </section>
@@ -473,16 +495,8 @@ function Workspace({ mode, launch, onChangeMode }: { mode: Mode; launch: Launch;
           )}
         </div>
 
-        <div className="no-print">
-          <AgentPanel
-            names={AGENTS}
-            agents={agents}
-            activity={activity}
-            open={panelOpen}
-            onToggle={() => setPanelOpen((o) => !o)}
-          />
-        </div>
       </div>
+      )
       )}
     </Shell>
   )

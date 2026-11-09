@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
-import AgentPanel from './AgentPanel'
 import { fetchScenarios, newSessionId, type ScenarioSuggestion, startPractice, streamPost, type StreamEvent } from './api'
 import { withoutUnansweredQuestion } from './practiceDisplay'
 import { ResourceCard } from './Results'
 import {
-  PRACTICE_AGENTS,
-  type ActivityItem,
-  type AgentState,
   type CoachCard,
   type Difficulty,
   type Mode,
@@ -37,9 +33,6 @@ type Item =
   | { kind: 'me'; text: string; coach?: CoachCard; pending?: boolean }
   | { kind: 'safety'; text: string; resources: Resource[] }
   | { kind: 'note'; text: string }
-
-const freshAgents = (): Record<string, AgentState> =>
-  Object.fromEntries(PRACTICE_AGENTS.map((a) => [a, { status: 'idle', summary: '', tokens: 0 }]))
 
 // The Web Speech API is not in TypeScript's DOM types in every setup.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,12 +71,8 @@ export default function PracticeRoom({
   const [paused, setPaused] = useState(false)
   const [summary, setSummary] = useState<PracticeSummary | null>(null)
   const [finished, setFinished] = useState(false)
-  const [agents, setAgents] = useState(freshAgents)
-  const [activity, setActivity] = useState<ActivityItem[]>([])
-  const [panelOpen, setPanelOpen] = useState(caseworker)
   const [listening, setListening] = useState(false)
   const [copied, setCopied] = useState('')
-  const nextId = useRef(0)
   const recognizer = useRef<any>(null)
   const bottom = useRef<HTMLDivElement>(null)
 
@@ -99,26 +88,10 @@ export default function PracticeRoom({
     if (stage === 'chat') bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [items, busy, paused, summary, stage])
 
-  const log = (agent: string, kind: ActivityItem['kind'], text: string) =>
-    setActivity((a) => [...a, { id: nextId.current++, agent, kind, text }])
 
-  const setAgent = (name: string, patch: (s: AgentState) => Partial<AgentState>) =>
-    setAgents((all) => ({ ...all, [name]: { ...(all[name] ?? { status: 'idle', summary: '', tokens: 0 }), ...patch(all[name]) } }))
 
   const onEvent = ({ event, data }: StreamEvent) => {
-    if (event === 'agent_started') {
-      setAgent(data.agent, () => ({ status: 'running' }))
-      log(data.agent, 'start', 'started')
-    } else if (event === 'agent_done') {
-      setAgent(data.agent, (s) => ({ status: 'done', summary: data.summary, tokens: (s?.tokens ?? 0) + (data.tokens?.total_tokens ?? 0) }))
-      log(data.agent, 'done', `${data.summary} · ${(data.tokens?.total_tokens ?? 0).toLocaleString()} tokens`)
-    } else if (event === 'guard_triggered') {
-      log(data.agent, 'issue', `Guard: ${data.guard}: ${data.detail}`)
-    } else if (event === 'safety_block') {
-      setAgent('safety_guard', () => ({ status: 'blocked', summary: data.status }))
-      log('safety_guard', 'block', `blocked: ${data.status}`)
-    } else if (event === 'error') {
-      log('app', 'error', data.message)
+    if (event === 'error') {
       if (data.kind !== 'limit') setItems((it) => [...it, { kind: 'note', text: data.message }])
     } else if (event === 'final') {
       onFinal(data as PracticeFinal)
@@ -176,8 +149,6 @@ export default function PracticeRoom({
       setSummary(null)
       setFinished(false)
       setPaused(false)
-      setAgents(freshAgents())
-      setActivity([])
       setStage('chat')
     } catch (e) {
       setCopied(e instanceof Error ? e.message : 'Could not start practice.')
@@ -187,7 +158,6 @@ export default function PracticeRoom({
   }
 
   const run = async (path: string, body: object) => {
-    setAgents((all) => Object.fromEntries(Object.entries(all).map(([k, v]) => [k, { ...v, status: 'idle' as const }])))
     setBusy(true)
     try {
       await streamPost(path, body, onEvent)
@@ -464,17 +434,7 @@ export default function PracticeRoom({
         <div ref={bottom} />
       </section>
 
-      {caseworker && (
-        <div className="no-print">
-          <AgentPanel
-            names={PRACTICE_AGENTS}
-            agents={agents}
-            activity={activity}
-            open={panelOpen}
-            onToggle={() => setPanelOpen((o) => !o)}
-          />
-        </div>
-      )}
+
     </div>
   )
 }

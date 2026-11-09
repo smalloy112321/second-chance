@@ -17,11 +17,42 @@ import type { AgentState, ChatMessage, Resource } from './types'
 
 const STEPS = ['About you', 'Record check', 'Your results', '30-day plan', 'Practice'] as const
 
+/** The "Checking your record…" card shown while the agents run (self-serve and caseworker). */
+export function WorkingCard({ agents, client = false }: { agents: Record<string, { status: string }>; client?: boolean }) {
+  const steps = client
+    ? [['intake', 'Read the case notes'], ['screener', 'Checking Clean Slate rules'], ['planner', 'Building the 30-day plan'], ['verifier', 'Double-checking the plan']]
+    : [['intake', 'Read your answers'], ['screener', 'Checking Clean Slate rules'], ['planner', 'Building your 30-day plan'], ['verifier', 'Double-checking your plan']]
+  const heading =
+    agents.verifier?.status === 'running'
+      ? client ? 'Double-checking the plan…' : 'Double-checking your plan…'
+      : agents.planner?.status === 'running'
+        ? client ? 'Building the 30-day plan…' : 'Building your 30-day plan…'
+        : agents.screener?.status === 'running'
+          ? client ? 'Checking the record…' : 'Checking your record…'
+          : client ? 'Reading the case notes…' : 'Reading your answers…'
+  return (
+    <section className="qa-card qa-wait" aria-live="polite">
+      <span className="spinner qa-spinner" aria-hidden="true" />
+      <h2 className="qa-question">{heading}</h2>
+      <ul className="qa-checklist">
+        {steps.map(([agent, label]) => {
+          const st = agents[agent]?.status
+          return (
+            <li key={agent} className={st === 'done' ? 'is-done' : st === 'running' ? 'is-current' : ''}>
+              <span aria-hidden="true">{st === 'done' ? '✓' : st === 'running' ? '●' : '○'}</span> {label}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 /** The five-step progress bar shown across the self-serve flow (also on the Practice screen). */
-export function ProgressSteps({ current, aboutFill = 100 }: { current: number; aboutFill?: number }) {
+export function ProgressSteps({ current, aboutFill = 100, labels = STEPS }: { current: number; aboutFill?: number; labels?: readonly string[] }) {
   return (
     <ol className="qa-steps" aria-label="Your progress">
-      {STEPS.map((s, i) => (
+      {labels.map((s, i) => (
         <li key={s} className={i < current ? 'is-done' : i === current ? 'is-current' : ''} aria-current={i === current ? 'step' : undefined}>
           <span className="qa-bar" aria-hidden="true">
             {i === 0 && <span className="qa-bar-fill" style={{ width: `${aboutFill}%` }} />}
@@ -373,33 +404,7 @@ export default function SelfServeFlow({ messages, busy, agents, finished, db, on
           )}
           {errorMsg && errorMsg.role === 'error' && <p className="qa-error" role="alert">{errorMsg.text}</p>}
           {busy ? (
-            <section className="qa-card qa-wait" aria-live="polite">
-              <span className="spinner qa-spinner" aria-hidden="true" />
-              <h2 className="qa-question">
-                {agents.verifier?.status === 'running'
-                  ? 'Double-checking your plan…'
-                  : agents.planner?.status === 'running'
-                    ? 'Building your 30-day plan…'
-                    : agents.screener?.status === 'running'
-                      ? 'Checking your record…'
-                      : 'Reading your answers…'}
-              </h2>
-              <ul className="qa-checklist">
-                {[
-                  ['intake', 'Read your answers'],
-                  ['screener', 'Checking Clean Slate rules'],
-                  ['planner', 'Building your 30-day plan'],
-                  ['verifier', 'Double-checking your plan'],
-                ].map(([agent, label]) => {
-                  const st = agents[agent]?.status
-                  return (
-                    <li key={agent} className={st === 'done' ? 'is-done' : st === 'running' ? 'is-current' : ''}>
-                      <span aria-hidden="true">{st === 'done' ? '✓' : st === 'running' ? '●' : '○'}</span> {label}
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
+            <WorkingCard agents={agents} />
           ) : followQ && followQ.role === 'assistant' ? (
             <section className="qa-card" aria-labelledby="qa-follow">
               <div className="qa-meta">

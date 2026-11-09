@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { planDates, progressText, repeatedResources, shortUrl, weekDates } from './planDisplay.ts'
+import { planDates, progressText, repeatedResources, shortUrl, stepLabel, weekDates } from './planDisplay.ts'
 
 const START = new Date(2026, 10, 8) // Nov 8, 2026
 
@@ -26,6 +26,17 @@ test('a program used twice shows its full card only the first time', () => {
     { week: 2, steps: [{ step_id: 'w2s1', resource_id: null }, { step_id: 'w2s2', resource_id: 'hartford-reentry-welcome-center' }] },
   ]
   assert.deepEqual(repeatedResources(weeks), { w2s2: 1 })
+})
+
+test('review notes name the step in plain words, not its id', () => {
+  const weeks = [{ week: 4, steps: [
+    { step_id: 'w4s1', action: 'Ask BEST Chance about training.' },
+    { step_id: 'w4s2', action: 'Search for food service openings on CTHires and apply to jobs that fit your skills.' },
+  ] }]
+  assert.equal(stepLabel(weeks, 'w4s1'), 'Week 4, step 1 (Ask BEST Chance about training.)')
+  assert.equal(stepLabel(weeks, 'w4s2'), 'Week 4, step 2 (Search for food service openings on CTHires and apply to…)')
+  assert.equal(stepLabel(weeks, 'w9s9'), '')
+  assert.equal(stepLabel(weeks, null), '')
 })
 
 test('progress text', () => {
