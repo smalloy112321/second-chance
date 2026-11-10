@@ -540,7 +540,6 @@ main { flex: 1; }
 .week-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 0.4rem; }
 @media print { .week-chevron { display: none; } }
 
-.landing-for { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; color: var(--accent-hover); }
 
 /* ---- Language picker (top right of every page) ---- */
 .site-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }

@@ -204,9 +204,6 @@ function Landing({ onChoose }: { onChoose: (m: Mode, view?: Launch['view']) => v
             </div>
           </div>
         </div>
-        <p className="landing-for">
-          {t('Built for women coming home from incarceration in Connecticut, and the caseworkers who support them.')}
-        </p>
         <p className="choose-prompt">{t('Let’s get started. Who are you planning for?')}</p>
         <div className="choices">
           <button type="button" className="choice choice-self" onClick={() => onChoose('self_serve')}>

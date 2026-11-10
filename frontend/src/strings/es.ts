@@ -9,7 +9,6 @@ export const es: Record<string, string> = {
   "Four women with their arms around each other, laughing together outdoors": "Cuatro mujeres abrazadas, riendo juntas al aire libre",
   "Connecticut’s Clean Slate law has erased the convictions of 170,000 people.": "La ley Clean Slate de Connecticut ha borrado las condenas de 170,000 personas.",
   "Check if your record was cleared, build a 30-day plan, and practice the conversations that matter most.": "Vea si sus antecedentes penales fueron borrados, haga un plan de 30 días y practique las conversaciones más importantes.",
-  "Built for women coming home from incarceration in Connecticut, and the caseworkers who support them.": "Hecho para mujeres que regresan a casa después de estar en prisión en Connecticut, y para las administradoras de casos que las apoyan.",
   "Let’s get started. Who are you planning for?": "Empecemos. ¿Para quién está haciendo el plan?",
   "I'm planning\nfor myself": "Hago el plan\npara mí",
   "Go at your own pace. One question at a time.": "Vaya a su propio ritmo. Una pregunta a la vez.",
