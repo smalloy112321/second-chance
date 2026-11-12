@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Second Chance Pathway Planner — Slides</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<style>
+@font-face { font-family: 'Outfit'; font-weight: 600; src: url(FONT:frontend/node_modules/@fontsource/outfit/files/outfit-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Outfit'; font-weight: 700; src: url(FONT:frontend/node_modules/@fontsource/outfit/files/outfit-latin-700-normal.woff2) format('woff2'); }
+:root { --navy: #122056; --accent: #5865DC; --lav: #EEEFFD; --nude: #F2E6E1; --ink: #1d2340; --muted: #555b7a; --line: #dfe1f0; }
+html, body { background: #FAFAFD; }
+.reveal { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 34px; color: var(--ink); }
+.reveal .slides { text-align: left; }
+.reveal .slides section { height: 100%; padding: 0 !important; }
+.reveal h1, .reveal h2, .reveal h3 { font-family: 'Outfit', system-ui, sans-serif; color: var(--navy); margin: 0; letter-spacing: -0.01em; line-height: 1.12; }
+.reveal h1 { font-size: 76px; }
+.reveal h2 { font-size: 52px; margin-bottom: 26px; }
+.reveal h3 { font-size: 38px; margin-bottom: 10px; }
+.reveal p { margin: 0 0 .5em; line-height: 1.4; }
+.reveal ul { margin: 0; padding-left: 1.1em; }
+.reveal li { margin: 0 0 .45em; line-height: 1.35; }
+.reveal strong { color: var(--navy); }
+.kicker { font-family: 'Outfit', system-ui, sans-serif; color: var(--accent); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-size: 22px; margin-bottom: 10px; }
+.cols { display: grid; gap: 44px; }
+.c2 { grid-template-columns: 1fr 1fr; }
+.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.card { background: var(--lav); border-radius: 14px; padding: 30px 34px; }
+.card.nude { background: var(--nude); }
+.stat { font-family: 'Outfit', system-ui, sans-serif; font-size: 88px; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+.stat-label { font-size: 30px; line-height: 1.3; }
+.small { font-size: 24px; color: var(--muted); }
+.src { position: absolute; bottom: 0; left: 0; right: 0; font-size: 16px; color: var(--muted); }
+.cap { font-size: 26px; color: var(--muted); margin-top: 14px; }
+.cap strong { color: var(--navy); }
+.shot { display: block; max-width: 100%; max-height: 640px; margin: 0 auto; border-radius: 10px; box-shadow: 0 2px 14px rgba(18,32,86,.12); }
+.reveal .r-stack img.shot { max-height: 640px; }
+.diagram svg { display: block; height: 650px; width: auto; margin: 0 auto; }
+.bar-row { display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin: 0 0 18px; font-size: 30px; }
+.bar-track { height: 34px; }
+.bar { height: 34px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.bar-val { color: var(--ink); font-variant-numeric: tabular-nums; }
+.links { font-size: 22px; color: var(--muted); line-height: 1.6; }
+.links a { color: var(--accent); }
+.tag { display: inline-block; background: var(--navy); color: #fff; border-radius: 6px; padding: 2px 10px; font-size: 20px; font-weight: 600; margin-right: 6px; }
+.reveal .slide-number { background: transparent; color: var(--muted); font-size: 16px; }
+.reveal .controls { color: var(--accent); }
+.reveal .progress { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- 1 TITLE -->
+<section>
+  <div class="cols" style="grid-template-columns: 0.9fr 1.1fr; align-items:center; height:100%">
+    <div>
+      <img src="IMG:docs/logo/logo-transparent.png" alt="The Second Chance Pathway Planner logo" style="height:76px; margin:0 0 28px">
+      <h1>The Second Chance Pathway Planner</h1>
+      <p style="font-size:32px; margin:24px 0 28px">Tells formerly incarcerated women in Connecticut whether their record is <strong>already erased</strong>, builds a <strong>30-day plan</strong>, and lets them <strong>practice the hard conversations</strong>.</p>
+      <p style="font-size:28px; margin-bottom:18px"><strong>Samantha Storch Malloy</strong> · Yale EMBA ’28 · MGT 409</p>
+      <div class="links">App: <a href="https://second-chance-pathway-planner.onrender.com/">second-chance-pathway-planner.onrender.com</a><br>Code: <a href="https://github.com/smalloy112321/second-chance">github.com/smalloy112321/second-chance</a></div>
+    </div>
+    <img class="shot" src="IMG:docs/screenshots/deck/homepage-desktop-and-mobile.jpg" alt="The homepage on desktop and mobile">
+  </div>
+  <aside class="notes">One sentence: the app tells a woman whether Clean Slate has already erased her record, then helps her use it. It works in English, Spanish, and Portuguese, with or without a caseworker.</aside>
+</section>
+
+<!-- 2 PROBLEM -->
+<section>
+  <div class="kicker">The problem</div>
+  <h2>The law already helped her. Nobody told her.</h2>
+  <div class="cols c3" style="margin-bottom:56px">
+    <div class="card"><div class="stat">170,000</div><div class="stat-label">people had convictions erased under Connecticut’s Clean Slate law (July 2026)</div></div>
+    <div class="card"><div class="stat">No notice</div><div class="stat-label">The state has no system to tell them; most were never told</div></div>
+    <div class="card"><div class="stat">$16.6M</div><div class="stat-label">the state is spending on Clean Slate, but the benefit isn’t reaching people</div></div>
+  </div>
+  <div class="cols c2" style="gap:34px">
+    <div><h3>Women who came home years ago</h3><p>May already be erased, but still check “yes” on job and housing forms, or never apply.</p></div>
+    <div><h3>Women leaving prison now</h3><p>Don’t know when their 7–10 year clock ends. Many are mothers juggling work, housing, and children at once.</p></div>
+  </div>
+  <p class="small" style="margin-top:40px; font-size:28px">Unemployment among formerly incarcerated people: 27%, and 43.6% for Black women (Prison Policy Initiative).</p>
+  <div class="src">Sources: CT Mirror, July 15, 2026; Connecticut Public, Dec. 26, 2025; CT Capitol Dispatch, Mar. 18, 2026; Prison Policy Initiative, 2018.</div>
+  <aside class="notes">Connecticut passed Clean Slate in 2021. It has erased 170,000 people's convictions but has no system to tell them. Two groups: women who may already be erased and don't know it, and women coming home now who can't see when their waiting period ends. Personal tie: my father-in-law, Governor Dan Malloy, started this work, and I served on the board of the Women's Prison Association.</aside>
+</section>
+
+<!-- 3 WHAT'S NEW -->
+<section>
+  <div class="kicker">What’s new</div>
+  <h2>No other tool answers: “Has my record already been erased?”</h2>
+  <div class="cols" style="grid-template-columns: 0.85fr 1.15fr; gap:56px; margin-top:20px">
+    <div class="card nude">
+      <h3>What exists today</h3>
+      <ul style="font-size:30px">
+        <li><strong>State websites:</strong> legal language, several steps, no notice</li>
+        <li><strong>Next Steps (NC):</strong> an AI reentry planner, but not CT law and not built for women</li>
+        <li><strong>2-1-1:</strong> a list, not a plan</li>
+        <li><strong>ChatGPT:</strong> can get CT rules and date math wrong and invent phone numbers</li>
+      </ul>
+    </div>
+    <ul>
+      <li><strong>A clear Clean Slate answer:</strong> likely erased, erased on a date, or talk to legal aid</li>
+      <li><strong>The rules run in code, not in the AI:</strong> the same facts always get the same answer</li>
+      <li><strong>Built for women:</strong> children, child care, and family court are core steps</li>
+      <li><strong>A Practice Room</strong> for employers, landlords, and social workers</li>
+      <li><strong>With or without a caseworker,</strong> in English, Spanish, or Portuguese</li>
+    </ul>
+  </div>
+  <aside class="notes">The closest competitors are AI reentry planners like Next Steps in North Carolina. None uses Connecticut law, none checks Clean Slate status, and none is built around women. The biggest difference from ChatGPT: eligibility is calculated in plain Python from the state's rules, and the AI only explains the result.</aside>
+</section>
+
+<!-- 4 AGENTS -->
+<section>
+  <div class="kicker">How the agents work</div>
+  <h2 style="margin-bottom:12px">8 AI agents + a rules engine with no AI</h2>
+  <div class="cols" style="grid-template-columns: 1fr 360px; gap:30px; align-items:center">
+    <div class="diagram"><!--DIAGRAM--></div>
+    <div style="font-size:29px">
+      <p><strong>A fixed order run by code:</strong> predictable cost, nothing loops.</p>
+      <p><strong>The rules engine decides</strong> each conviction’s result; the screener can’t change it.</p>
+      <p><strong>The planner’s tools:</strong> 41 checked CT resources and the nearest Reentry Welcome Center.</p>
+      <p><strong>The verifier</strong> checks every plan and sends it back once if needed.</p>
+      <p class="small">All agents use gpt-6-luna through Portkey.</p>
+    </div>
+  </div>
+  <aside class="notes">Safety guard first, then intake turns answers or notes into a profile, then the rules engine. The screener explains the result, the planner builds the plan with tools, and the verifier checks it. In the Practice Room, the role-play partner, coach, and summary never see her convictions.</aside>
+</section>
+
+<!-- 5 DEMO: SELF-SERVE -->
+<section>
+  <div class="kicker">Demo 1 · Planning for herself</div>
+  <h2 style="margin-bottom:18px">Judith checks her record: about 7 minutes, half a cent</h2>
+  <div class="r-stack">
+    <img class="shot fragment fade-out" data-fragment-index="0" src="IMG:docs/report/img/run1-slide-1.jpg" alt="Self-serve steps 1 to 4: first name, questions, check answers, record check">
+    <img class="shot fragment" data-fragment-index="0" src="IMG:docs/report/img/run1-slide-2.jpg" alt="Self-serve steps 5 to 7: results, goals, and 30-day plan">
+  </div>
+  <p class="cap">12 questions → her result and next steps (official record first) → her goals → a 4-week plan with checked contacts. <strong>10 model calls, 40,703 tokens, $0.0055.</strong></p>
+  <aside class="notes">Press the right arrow once to show steps 5 to 7. Judith has a 2009 drug possession conviction and isn't sure if it was a felony. The app says it needs more information and tells her exactly how to get her official record. The verifier sent the first plan back once, which is why this run cost more than the $0.0037 median.</aside>
+</section>
+
+<!-- 6 DEMO: CASEWORKER -->
+<section>
+  <div class="kicker">Demo 2 · A caseworker</div>
+  <h2 style="margin-bottom:18px">She pastes her case notes as they are</h2>
+  <div class="r-stack">
+    <img class="shot fragment fade-out" data-fragment-index="0" src="IMG:docs/screenshots/deck/caseworker-slide-1.jpg" alt="Caseworker steps 1 to 3: start, pasted notes with missing-facts checklist, record check">
+    <img class="shot fragment" data-fragment-index="0" src="IMG:docs/screenshots/deck/caseworker-slide-2.jpg" alt="Caseworker steps 4 and 5: record results and 30-day plan">
+  </div>
+  <p class="cap">A free checklist lists missing facts before Submit; intake pulls out the rest. <strong>6 model calls, 25,627 tokens, $0.0045.</strong></p>
+  <aside class="notes">Press the right arrow once to show the results and plan. A sample client with three convictions, current probation, and an open DCF case. The caseworker doesn't fill in a form; the intake agent reads her notes.</aside>
+</section>
+
+<!-- 7 DEMO: PRACTICE -->
+<section>
+  <div class="kicker">Demo 3 · Practice Room</div>
+  <h2 style="margin-bottom:18px">Rehearse the hard conversation, with a coach</h2>
+  <img class="shot" src="IMG:docs/screenshots/deck/practice-only-slide.jpg" alt="Practice Room: choose a conversation, coach feedback, summary">
+  <p class="cap">Hiring manager, landlord, or social worker; friendly, neutral, or skeptical. Scored on 5 skills with a “Try saying…” rewrite. <strong>About $0.0006 per answer.</strong></p>
+  <aside class="notes">The role-play partner and coach never see her convictions. Code keeps the scores at 1 to 3 per skill and replaces any coaching that tells her to deny a record that isn't erased.</aside>
+</section>
+
+<!-- 8 COST -->
+<section>
+  <div class="kicker">Cost to run · measured, not estimated</div>
+  <h2>Under one cent per plan</h2>
+  <div class="cols c3" style="gap:28px; margin-bottom:40px">
+    <div class="card"><div class="stat">$0.0037</div><div class="stat-label">typical plan: 30,377 tokens (median of 12 runs)</div></div>
+    <div class="card"><div class="stat">$0.013</div><div class="stat-label">per user per month: 2 plans + 10 practice answers</div></div>
+    <div class="card"><div class="stat">~$5/yr</div><div class="stat-label">for all 400 clients a year at Hartford’s Reentry Welcome Center</div></div>
+  </div>
+  <div class="cols c2" style="gap:56px">
+    <div>
+      <h3>Where a plan’s tokens go</h3>
+      <div class="bar-row" title="Planner: 51% of tokens"><span>Planner</span><div class="bar-track"><div class="bar" style="width:100%"></div></div><span class="bar-val">51%</span></div>
+      <div class="bar-row" title="Verifier: 26% of tokens"><span>Verifier</span><div class="bar-track"><div class="bar" style="width:51%"></div></div><span class="bar-val">26%</span></div>
+      <div class="bar-row" title="Intake: 9% of tokens"><span>Intake</span><div class="bar-track"><div class="bar" style="width:17.6%"></div></div><span class="bar-val">9%</span></div>
+      <div class="bar-row" title="Screener: 9% of tokens"><span>Screener</span><div class="bar-track"><div class="bar" style="width:17.6%"></div></div><span class="bar-val">9%</span></div>
+      <div class="bar-row" title="Safety guard: 4% of tokens"><span>Safety guard</span><div class="bar-track"><div class="bar" style="width:7.8%"></div></div><span class="bar-val">4%</span></div>
+    </div>
+    <div style="font-size:30px">
+      <h3>What keeps it low</h3>
+      <ul>
+        <li>Rules in plain Python: free</li>
+        <li>Cached prompt start: 45% of input at 1/10 the price</li>
+        <li>One questionnaire instead of a chat: 24–44 calls down to 6–11</li>
+        <li>Caps: 150,000 tokens per session, 2M a day</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card nude" style="margin-top:22px; padding:20px 34px; font-size:30px"><strong>At scale:</strong> about $1.34 a month for 100 users and $134 a month for 10,000. Hosting and keeping the resource list current cost more than the AI.</div>
+  <aside class="notes">Prices: 10 cents per million input tokens, 1 cent cached, 50 cents output. The honest trade-off: one inexpensive model means the verifier sends about a third of plans back once.</aside>
+</section>
+
+<!-- 9 SAFETY -->
+<section>
+  <div class="kicker">Safety</div>
+  <h2>The worst failure: telling her “you can answer no” when she can’t</h2>
+  <div class="cols" style="grid-template-columns: 1fr 1fr 0.95fr; gap:30px; align-items:start">
+    <figure style="margin:0"><img class="shot" src="IMG:docs/report/img/injection-blocked.jpg" alt="Prompt injection in case notes blocked" style="max-height:560px"><p class="cap" style="font-size:26px"><strong>Prompt injection blocked</strong> before any AI runs (0 tokens)</p></figure>
+    <figure style="margin:0"><img class="shot" src="IMG:docs/report/img/crisis-caught.jpg" alt="Crisis message answered with checked crisis lines" style="max-height:560px"><p class="cap" style="font-size:26px"><strong>Crisis caught</strong> by code; the reply and 988 / 2-1-1 lines are pre-written</p></figure>
+    <ul style="font-size:31px">
+      <li><strong>The rules engine</strong> makes the legal call, never the AI</li>
+      <li><strong>The AI never writes</strong> phone numbers or addresses</li>
+      <li><strong>The verifier</strong> labels weak plans “Needs human review”</li>
+      <li><strong>The Practice Room</strong> never sees convictions</li>
+      <li><strong>36 safety tests</strong> pass</li>
+    </ul>
+  </div>
+  <aside class="notes">Every message goes through the safety guard first: a free keyword check in three languages, then an AI classifier. "You can answer no" is allowed only when every conviction is likely erased, and code checks it twice. Every result says it's an estimate and points to the official State Police record.</aside>
+</section>
+
+<!-- 10 IMPACT + NEXT -->
+<section>
+  <div class="kicker">Impact and what’s next</div>
+  <h2>A real user, real numbers, and the next step</h2>
+  <div class="cols" style="grid-template-columns: 1.1fr 0.9fr; gap:44px">
+    <div>
+      <div class="card nude" style="margin-bottom:28px; font-size:30px">
+        <h3>A real user tried it (Nov. 9, 2026)</h3>
+        <p style="margin:0">A 38-year-old checked their own 2009 felony drug conviction. The answer, “may qualify, confirm with your official record,” matched what they knew. The action plan was the most useful part. <strong>All 6 of their suggestions are now live.</strong></p>
+      </div>
+      <div class="cols c2" style="gap:20px">
+        <div class="card"><div class="stat" style="font-size:76px">~7 min</div><div class="stat-label" style="font-size:27px">free, compared with a $75 State Police record request</div></div>
+        <div class="card"><div class="stat" style="font-size:76px">170,000</div><div class="stat-label" style="font-size:27px">people who could learn their conviction is likely erased</div></div>
+      </div>
+    </div>
+    <div style="font-size:32px">
+      <h3>Next, with another month</h3>
+      <ul>
+        <li><strong>A pilot with caseworkers</strong> at a Reentry Welcome Center, measuring time saved</li>
+        <li><strong>A legal aid attorney</strong> checks the rules; native speakers check Spanish and Portuguese</li>
+        <li><strong>Reminders</strong> when her waiting period ends</li>
+        <li><strong>More practice scenarios:</strong> family court, probation</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:40px; background:var(--navy); color:#fff; border-radius:14px; padding:24px 34px; font-family:'Outfit',system-ui,sans-serif; font-size:38px; font-weight:600">The law already helped her. Now she can find out. <span style="font-family:system-ui,sans-serif; font-weight:400; font-size:26px; opacity:.85">second-chance-pathway-planner.onrender.com</span></div>
+  <aside class="notes">Limits: it's an estimate, not her official record; Connecticut convictions only; one real user so far. The biggest impact is the hardest to count: a woman who learns her conviction is likely erased can confirm it and then apply for jobs and housing without disclosing it.</aside>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({ width: 1600, height: 900, margin: 0.05, center: false, hash: true, slideNumber: 'c/t', transition: 'fade', plugins: [RevealNotes] });
+</script>
+</body>
+</html>
