@@ -65,6 +65,21 @@ table.cmp th.miss { background: #7a3d0e; }
 .new5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
 .new5 .card { padding: 16px 18px; font-size: 20px; line-height: 1.3; }
 .new5 .card strong { display: block; font-family: 'Outfit', system-ui, sans-serif; font-size: 22px; margin-bottom: 4px; }
+table.safe { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 20px; line-height: 1.3; }
+table.safe th { background: var(--navy); color: #fff; font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; text-align: left; padding: 9px 12px; font-size: 20px; }
+table.safe td { padding: 9px 12px; vertical-align: top; border-bottom: 1px solid var(--line); }
+table.safe tr:nth-child(even) td { background: #f7f8fd; }
+table.safe td.risk { font-weight: 700; color: var(--navy); }
+.live { display: inline-block; background: #e3f4e8; color: #1d6b36; border: 1px solid #9fd3ad; border-radius: 999px; padding: 1px 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.proof figure { margin: 0 0 12px; }
+.proof img { display: block; width: 100%; border-radius: 8px; box-shadow: 0 2px 10px rgba(18,32,86,.12); }
+.proof figcaption { font-size: 18px; color: var(--muted); margin-top: 6px; line-height: 1.3; }
+.imp3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+.imp3 .card { padding: 20px 24px; }
+.imp3 .area { font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 18px; color: var(--accent); }
+.imp3 .stat { font-size: 72px; margin: 6px 0 8px; }
+.imp3 .stat-label { font-size: 25px; line-height: 1.32; }
+.imp3 .sub { font-size: 20px; color: var(--muted); margin-top: 8px; line-height: 1.3; }
 </style>
 </head>
 <body>
@@ -151,7 +166,7 @@ table.cmp th.miss { background: #7a3d0e; }
 <section>
   <div class="kicker">Demo 1 · Planning for herself</div>
   <h2 style="margin-bottom:14px">A formerly convicted woman checks her record</h2>
-  <p class="blurb">Judith lives in Hartford, has two children, and a 2009 drug possession conviction. She isn’t sure if it was a misdemeanor or a felony. She uses the app to check her record, which takes 7 minutes and half a cent.</p>
+  <p class="blurb">Judith lives in Hartford, has two children, and a 2009 drug possession conviction. She isn’t sure if it was a misdemeanor or a felony. She uses the app to check her record. The run took about a minute and cost about half a cent ($0.0055).</p>
   <img class="shot" style="max-height:670px" src="IMG:docs/slides/img/run1-board.jpg" alt="Self-serve steps 1 to 7: her name, questions, check answers, record check, results, goals, and 30-day plan">
   <div class="runnote">Logged run on the live code, November 9, 2026 (session 5bc6a3b2): 10 model calls; 34,626 input tokens (11,353 cached) + 6,077 output = 40,703 tokens, $0.0055.</div>
   <aside class="notes">12 questions, then her result and next steps (official record first), then her goals, then a 4-week plan with checked contacts. The app says her conviction needs more information and tells her exactly how to get her official record. The verifier sent the first plan back once, which is why this run cost more than the $0.0037 median.</aside>
@@ -161,7 +176,7 @@ table.cmp th.miss { background: #7a3d0e; }
 <section>
   <div class="kicker">Demo 2 · A caseworker</div>
   <h2 style="margin-bottom:14px">A caseworker checks his client’s record</h2>
-  <p class="blurb">Tauhid is a caseworker in New Haven, CT. He doesn’t have to sort the facts about his clients into a form. Instead, he uses the app to paste his case notes as they are, and the intake agent pulls out what the rules engine needs. These notes are for a sample client with three convictions, current probation, and an open DCF case. Before Submit, a free checklist in code lists facts the notes leave out. The record check and 30-day plan took about 35 seconds and cost less than half a cent.</p>
+  <p class="blurb">Tauhid is a caseworker in New Haven, CT. He doesn’t have to sort the facts about his clients into a form. Instead, he uses the app to paste his case notes as they are, and the intake agent pulls out what the rules engine needs. These notes are for a sample client with three convictions, current probation, and an open DCF case. Before Submit, a free checklist in code lists facts the notes leave out. The run took about 35 seconds and cost less than half a cent ($0.0045).</p>
   <img class="shot" style="max-height:575px" src="IMG:docs/slides/img/caseworker-board.jpg" alt="Caseworker steps 1 to 5: start, pasted case notes with the missing-facts checklist, record check, record results, and 30-day plan">
   <div class="runnote">Logged run, November 9, 2026 (session 53477090): 6 model calls; 20,523 input tokens (1,351 cached) + 5,104 output = 25,627 tokens, $0.0045.</div>
   <aside class="notes">Caseworkers also see the rules engine's reason codes and the disclosure guidance, and the plan is written about "your client." Two convictions are likely erased once probation ends; one needs the year of the offense.</aside>
@@ -171,7 +186,7 @@ table.cmp th.miss { background: #7a3d0e; }
 <section>
   <div class="kicker">Demo 3 · Practice Room</div>
   <h2 style="margin-bottom:14px">A formerly incarcerated woman preps for a job interview</h2>
-  <p class="blurb">Anna was in prison for a 2014 drug conviction. Since then, she’s finished a food safety course and volunteered in a kitchen. She is ready for a job and uses the app to practice how to approach her history. For each answer, the safety guard checks it, then the role-play partner and coach run at the same time, then code checks the coach’s output. Feedback came back about 5 seconds after each answer, and the whole session cost about one-seventh of a cent.</p>
+  <p class="blurb">Anna was in prison for a 2014 drug conviction. Since then, she’s finished a food safety course and volunteered in a kitchen. She is ready for a job and uses the app to practice how to approach her history. For each answer, the safety guard checks it, then the role-play partner and coach run at the same time, then code checks the coach’s output. The run took about 30 seconds and cost about one-seventh of a cent ($0.0015).</p>
   <img class="shot" style="max-height:610px" src="IMG:docs/screenshots/deck/practice-only-slide.jpg" alt="Practice Room: choose a conversation, coach feedback, summary">
   <div class="runnote">Logged practice-only session, November 8, 2026 (session b7cde69c): two answers and a summary; 7 model calls, 9,218 tokens, about $0.0015.</div>
   <aside class="notes">Hiring manager, landlord, or social worker; friendly, neutral, or skeptical. The coach scores five skills and suggests a "Try saying..." rewrite. The role-play partner and coach never see her convictions. Code keeps the scores at 1 to 3 per skill and replaces any coaching that tells her to deny a record that isn't erased.</aside>
@@ -180,7 +195,7 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 8 COST -->
 <section>
   <div class="kicker">Cost to run · measured, not estimated</div>
-  <h2>Under one cent per plan</h2>
+  <h2>Each run costs under one cent, regardless of the use case</h2>
   <div class="cols c3" style="gap:28px; margin-bottom:40px">
     <div class="card"><div class="stat">$0.0037</div><div class="stat-label">typical plan: 30,377 tokens (median of 12 runs)</div></div>
     <div class="card"><div class="stat">$0.013</div><div class="stat-label">per user per month: 2 plans + 10 practice answers</div></div>
@@ -212,48 +227,51 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 9 SAFETY -->
 <section>
   <div class="kicker">Safety</div>
-  <h2>The worst failure: telling her “you can answer no” when she can’t</h2>
-  <div class="cols" style="grid-template-columns: 1fr 1fr 0.95fr; gap:30px; align-items:start">
-    <figure style="margin:0"><img class="shot" src="IMG:docs/report/img/injection-blocked.jpg" alt="Prompt injection in case notes blocked" style="max-height:560px"><p class="cap" style="font-size:26px"><strong>Prompt injection blocked</strong> before any AI runs (0 tokens)</p></figure>
-    <figure style="margin:0"><img class="shot" src="IMG:docs/report/img/crisis-caught.jpg" alt="Crisis message answered with checked crisis lines" style="max-height:560px"><p class="cap" style="font-size:26px"><strong>Crisis caught</strong> by code; the reply and 988 / 2-1-1 lines are pre-written</p></figure>
-    <ul style="font-size:31px">
-      <li><strong>The rules engine</strong> makes the legal call, never the AI</li>
-      <li><strong>The AI never writes</strong> phone numbers or addresses</li>
-      <li><strong>The verifier</strong> labels weak plans “Needs human review”</li>
-      <li><strong>The Practice Room</strong> never sees convictions</li>
-      <li><strong>36 safety tests</strong> pass</li>
-    </ul>
+  <h2 style="font-size:46px; margin-bottom:12px">Six risks we planned for, and the defenses built into the app</h2>
+  <p class="blurb" style="margin-bottom:16px">These are not future plans. Every defense below is running in the live app today and is covered by <strong>36 automated safety tests, all passing</strong>.</p>
+  <div class="cols" style="grid-template-columns: 1fr 380px; gap:26px; align-items:start">
+    <table class="safe">
+      <thead><tr><th style="width:17%">Risk</th><th style="width:30%">What could go wrong</th><th>What the app does today</th><th style="width:12%">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="risk">Wrong legal answer</td><td>The AI says a conviction is erased when it isn’t, or that she can answer “no.”</td><td>The rules engine (code, not AI) decides. “You can answer no” is allowed only when every conviction is likely erased, checked twice in code. Every result says it is an estimate.</td><td><span class="live">✓ Live</span></td></tr>
+        <tr><td class="risk">Crisis</td><td>She mentions suicide or being hurt.</td><td>Caught by code with no AI call. The app shows its own message with checked 988, CT Safe Connect, and 2-1-1 lines.</td><td><span class="live">✓ Live</span></td></tr>
+        <tr><td class="risk">Prompt injection</td><td>Pasted notes say “ignore your instructions.”</td><td>The safety guard checks every message first. A blocked message never reaches the other agents.</td><td><span class="live">✓ Live</span></td></tr>
+        <tr><td class="risk">Invented facts</td><td>A made-up phone number, address, or program.</td><td>The AI never writes contact details. All 41 resources are checked; the verifier flags anything else.</td><td><span class="live">✓ Live</span></td></tr>
+        <tr><td class="risk">Privacy</td><td>Conviction details reach agents or logs that don’t need them.</td><td>The Practice Room never sees convictions. Names are masked in logs. No accounts; “Clear my info” erases her data.</td><td><span class="live">✓ Live</span></td></tr>
+        <tr><td class="risk">Runaway cost</td><td>A bug or bad actor runs up the bill.</td><td>Fixed order, one revision at most, call caps, 150,000 tokens per session and 2M a day.</td><td><span class="live">✓ Live</span></td></tr>
+      </tbody>
+    </table>
+    <div class="proof">
+      <div class="kicker" style="font-size:18px; margin-bottom:8px">Proof from the live app</div>
+      <figure><img src="IMG:docs/report/img/injection-blocked.jpg" alt="Prompt injection in case notes blocked"><figcaption><strong>Prompt injection blocked</strong> before any AI ran (0 tokens).</figcaption></figure>
+      <figure><img src="IMG:docs/report/img/crisis-caught.jpg" alt="Crisis message answered with checked crisis lines" style="max-height:300px; object-fit:cover; object-position:top"><figcaption><strong>Crisis caught</strong> by code, with the pre-written crisis lines.</figcaption></figure>
+    </div>
   </div>
-  <aside class="notes">Every message goes through the safety guard first: a free keyword check in three languages, then an AI classifier. "You can answer no" is allowed only when every conviction is likely erased, and code checks it twice. Every result says it's an estimate and points to the official State Police record.</aside>
+  <aside class="notes">Be clear: these defenses are built and running, not planned. The worst failure would be telling a woman she can answer "no" about a conviction that is still on her record, so that decision is made in code and checked twice. Malfunctions are caught in real runs too: in 12 measured runs the verifier sent 4 plans back and labeled 2 "Needs human review."</aside>
 </section>
 
 <!-- 10 IMPACT + NEXT -->
 <section>
-  <div class="kicker">Impact and what’s next</div>
-  <h2>A real user, real numbers, and the next step</h2>
-  <div class="cols" style="grid-template-columns: 1.1fr 0.9fr; gap:44px">
-    <div>
-      <div class="card nude" style="margin-bottom:28px; font-size:30px">
-        <h3>A real user tried it (Nov. 9, 2026)</h3>
-        <p style="margin:0">A 38-year-old checked their own 2009 felony drug conviction. The answer, “may qualify, confirm with your official record,” matched what they knew. The action plan was the most useful part. <strong>All 6 of their suggestions are now live.</strong></p>
-      </div>
-      <div class="cols c2" style="gap:20px">
-        <div class="card"><div class="stat" style="font-size:76px">~7 min</div><div class="stat-label" style="font-size:27px">free, compared with a $75 State Police record request</div></div>
-        <div class="card"><div class="stat" style="font-size:76px">170,000</div><div class="stat-label" style="font-size:27px">people who could learn their conviction is likely erased</div></div>
-      </div>
+  <div class="kicker">Impact</div>
+  <h2 style="font-size:44px; margin-bottom:14px">170,000 people could benefit. Here’s what that could mean for Connecticut.</h2>
+  <p class="blurb" style="margin-bottom:18px">A record that no longer exists still costs people jobs, homes, and time with their children if they don’t know it’s gone. The research below shows what clearing a record is worth.</p>
+  <div class="imp3">
+    <div class="card"><div class="area">Jobs</div><div class="stat">+25%</div><div class="stat-label">higher wages within two years of having a record cleared</div><div class="sub">About $4,500 more a year, mostly from people finding work (Michigan study)</div></div>
+    <div class="card"><div class="area">Housing</div><div class="stat">79%</div><div class="stat-label">of formerly incarcerated people and their families surveyed were denied housing or found ineligible because of a record</div></div>
+    <div class="card"><div class="area">Families</div><div class="stat">62%</div><div class="stat-label">of women in state prisons have a child under 18. A job and a home help a mother bring her children home</div></div>
+  </div>
+  <div class="cols" style="grid-template-columns: 1.25fr 1fr; gap:24px">
+    <div style="background:var(--navy); color:#fff; border-radius:14px; padding:22px 28px; font-size:27px; line-height:1.4">
+      <div style="font-family:'Outfit',system-ui,sans-serif; font-weight:700; font-size:30px; margin-bottom:6px">If the app reaches 1 in 10 of the 170,000</div>
+      17,000 people × about $4,500 a year = <strong style="color:#fff">about $77 million a year</strong> in added earnings for Connecticut residents, for about $220 in AI cost (a month of use each).
     </div>
-    <div style="font-size:32px">
-      <h3>Next, with another month</h3>
-      <ul>
-        <li><strong>A pilot with caseworkers</strong> at a Reentry Welcome Center, measuring time saved</li>
-        <li><strong>A legal aid attorney</strong> checks the rules; native speakers check Spanish and Portuguese</li>
-        <li><strong>Reminders</strong> when her waiting period ends</li>
-        <li><strong>More practice scenarios:</strong> family court, probation</li>
-      </ul>
+    <div class="card nude" style="font-size:25px; padding:22px 26px; line-height:1.38">
+      <strong>A real user tried it (Nov. 9, 2026).</strong> A 38-year-old checked their own 2009 felony drug conviction. The answer matched what they knew, the action plan was the most useful part, and all 6 of their suggestions are now live.
     </div>
   </div>
-  <div style="margin-top:40px; background:var(--navy); color:#fff; border-radius:14px; padding:24px 34px; font-family:'Outfit',system-ui,sans-serif; font-size:38px; font-weight:600">The law already helped her. Now she can find out. <span style="font-family:system-ui,sans-serif; font-weight:400; font-size:26px; opacity:.85">second-chance-pathway-planner.onrender.com</span></div>
-  <aside class="notes">Limits: it's an estimate, not her official record; Connecticut convictions only; one real user so far. The biggest impact is the hardest to count: a woman who learns her conviction is likely erased can confirm it and then apply for jobs and housing without disclosing it.</aside>
+  <p style="font-size:25px; margin:24px 0 0"><strong>Next:</strong> a pilot with caseworkers at a Reentry Welcome Center, legal-aid review of the rules engine, and reminders when a waiting period ends.</p>
+  <div class="src" style="font-size:14px">Sources: Prescott &amp; Starr, Harvard Law Review, 2020 (wages; $4,500 as cited in CT Mirror, Apr. 8, 2021); Ella Baker Center et al., “Who Pays?”, 2015 (housing); The Sentencing Project, “Incarcerated Women and Girls” (mothers). The $77 million is an illustration, not a forecast.</div>
+  <aside class="notes">The $77 million is a back-of-envelope illustration: if one in ten of the 170,000 learn their record is clear and see the average earnings gain found in Michigan. AI cost: 17,000 users × about $0.013 for a month of use = about $220; one record check each would be about $63. Limits: it's an estimate, not her official record; Connecticut convictions only; one real user so far.</aside>
 </section>
 
 </div></div>
