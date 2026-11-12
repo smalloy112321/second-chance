@@ -8,7 +8,7 @@
 <style>
 @font-face { font-family: 'Outfit'; font-weight: 600; src: url(FONT:frontend/node_modules/@fontsource/outfit/files/outfit-latin-600-normal.woff2) format('woff2'); }
 @font-face { font-family: 'Outfit'; font-weight: 700; src: url(FONT:frontend/node_modules/@fontsource/outfit/files/outfit-latin-700-normal.woff2) format('woff2'); }
-:root { --navy: #122056; --accent: #5865DC; --lav: #EEEFFD; --nude: #F2E6E1; --ink: #1d2340; --muted: #555b7a; --line: #dfe1f0; }
+:root { --navy: #122056; --accent: #5865DC; --lav: #EEEFFD; --nude: #DDE1FA; --ink: #1d2340; --muted: #555b7a; --line: #dfe1f0; }
 html, body { background: #FAFAFD; }
 .reveal { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 34px; color: var(--ink); }
 .reveal .slides { text-align: left; }
@@ -61,7 +61,7 @@ table.cmp th { background: var(--navy); color: #fff; font-family: 'Outfit', syst
 table.cmp td { padding: 8px 12px; vertical-align: top; border-bottom: 1px solid var(--line); }
 table.cmp tr:nth-child(even) td { background: #f7f8fd; }
 table.cmp td.miss { background: var(--nude) !important; color: var(--ink); }
-table.cmp th.miss { background: #7a3d0e; }
+table.cmp th.miss { background: var(--accent); }
 .new5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
 .new5 .card { padding: 16px 18px; font-size: 20px; line-height: 1.3; }
 .new5 .card strong { display: block; font-family: 'Outfit', system-ui, sans-serif; font-size: 22px; margin-bottom: 4px; }
@@ -227,9 +227,9 @@ table.safe td.risk { font-weight: 700; color: var(--navy); }
 <!-- 9 SAFETY -->
 <section>
   <div class="kicker">Safety</div>
-  <h2 style="font-size:46px; margin-bottom:12px">Six risks we planned for, and the defenses built into the app</h2>
+  <h2 style="font-size:42px; margin-bottom:12px">Safety is essential with this subject matter, and we planned for six critical risks and included defenses in the app</h2>
   <p class="blurb" style="margin-bottom:16px">These are not future plans. Every defense below is running in the live app today and is covered by <strong>36 automated safety tests, all passing</strong>.</p>
-  <div class="cols" style="grid-template-columns: 1fr 380px; gap:26px; align-items:start">
+  <div class="cols" style="grid-template-columns: 1fr 470px; gap:26px; align-items:start">
     <table class="safe">
       <thead><tr><th style="width:17%">Risk</th><th style="width:30%">What could go wrong</th><th>What the app does today</th><th style="width:12%">Status</th></tr></thead>
       <tbody>
@@ -244,7 +244,7 @@ table.safe td.risk { font-weight: 700; color: var(--navy); }
     <div class="proof">
       <div class="kicker" style="font-size:18px; margin-bottom:8px">Proof from the live app</div>
       <figure><img src="IMG:docs/report/img/injection-blocked.jpg" alt="Prompt injection in case notes blocked"><figcaption><strong>Prompt injection blocked</strong> before any AI ran (0 tokens).</figcaption></figure>
-      <figure><img src="IMG:docs/report/img/crisis-caught.jpg" alt="Crisis message answered with checked crisis lines" style="max-height:300px; object-fit:cover; object-position:top"><figcaption><strong>Crisis caught</strong> by code, with the pre-written crisis lines.</figcaption></figure>
+      <figure><img src="IMG:docs/report/img/crisis-caught.jpg" alt="Crisis message answered with checked crisis lines" style="max-height:330px; object-fit:cover; object-position:top"><figcaption><strong>Crisis caught</strong> by code, with the pre-written crisis lines.</figcaption></figure>
     </div>
   </div>
   <aside class="notes">Be clear: these defenses are built and running, not planned. The worst failure would be telling a woman she can answer "no" about a conviction that is still on her record, so that decision is made in code and checked twice. Malfunctions are caught in real runs too: in 12 measured runs the verifier sent 4 plans back and labeled 2 "Needs human review."</aside>
@@ -256,14 +256,14 @@ table.safe td.risk { font-weight: 700; color: var(--navy); }
   <h2 style="font-size:44px; margin-bottom:14px">170,000 people could benefit. Here’s what that could mean for Connecticut.</h2>
   <p class="blurb" style="margin-bottom:18px">A record that no longer exists still costs people jobs, homes, and time with their children if they don’t know it’s gone. The research below shows what clearing a record is worth.</p>
   <div class="imp3">
-    <div class="card"><div class="area">Jobs</div><div class="stat">+25%</div><div class="stat-label">higher wages within two years of having a record cleared</div><div class="sub">About $4,500 more a year, mostly from people finding work (Michigan study)</div></div>
+    <div class="card"><div class="area">Jobs</div><div class="stat">+25%</div><div class="stat-label">higher wages within two years of having a record cleared</div><div class="sub">That’s about $4,500 more in earnings per person per year, mostly from people finding work (Michigan study)</div></div>
     <div class="card"><div class="area">Housing</div><div class="stat">79%</div><div class="stat-label">of formerly incarcerated people and their families surveyed were denied housing or found ineligible because of a record</div></div>
     <div class="card"><div class="area">Families</div><div class="stat">62%</div><div class="stat-label">of women in state prisons have a child under 18. A job and a home help a mother bring her children home</div></div>
   </div>
   <div class="cols" style="grid-template-columns: 1.25fr 1fr; gap:24px">
     <div style="background:var(--navy); color:#fff; border-radius:14px; padding:22px 28px; font-size:27px; line-height:1.4">
       <div style="font-family:'Outfit',system-ui,sans-serif; font-weight:700; font-size:30px; margin-bottom:6px">If the app reaches 1 in 10 of the 170,000</div>
-      17,000 people × about $4,500 a year = <strong style="color:#fff">about $77 million a year</strong> in added earnings for Connecticut residents, for about $220 in AI cost (a month of use each).
+      17,000 people × about $4,500 more in yearly earnings each = <strong style="color:#fff">about $77 million a year</strong> in added earnings for Connecticut residents, for about $220 in AI cost (a month of use each).
     </div>
     <div class="card nude" style="font-size:25px; padding:22px 26px; line-height:1.38">
       <strong>A real user tried it (Nov. 9, 2026).</strong> A 38-year-old checked their own 2009 felony drug conviction. The answer matched what they knew, the action plan was the most useful part, and all 6 of their suggestions are now live.
