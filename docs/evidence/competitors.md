@@ -16,7 +16,7 @@ Checked on the web on November 9, 2026. Each line says what the tool does and wh
 
 ## What this app does that none of them do together
 
-1. **A Connecticut-specific eligibility estimate from plain-Python rules** (15 tests), not from a model, with the official next step and form for each result.
+1. **A Connecticut-specific eligibility estimate from plain-Python rules** (16 tests), not from a model, with the official next step and form for each result.
 2. **A 30-day plan built from 41 checked Connecticut resources**, where phone numbers and addresses come from the checked list, never from the AI, and a second agent verifies the plan before she sees it.
 3. **Practice conversations with a coach** for the hard moments that follow: a job interview, an apartment application, and a reunification meeting with a social worker.
 4. **Built for formerly incarcerated women**, usable alone or by a caseworker for a client.

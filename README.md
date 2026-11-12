@@ -4,7 +4,7 @@
 
 A web app that helps formerly incarcerated women in Connecticut, on their own or with a caseworker, check whether their record may have been erased under CT's Clean Slate law, build a 30-day reentry plan, and practice hard conversations.
 
-> **Status:** the planner (five agents + Clean Slate rules engine) and the Practice Room work end to end.
+> **Status:** eight AI agents (five in the planner, three in the Practice Room) plus the Clean Slate rules engine all work end to end.
 
 ## Run it
 
