@@ -46,14 +46,14 @@ html, body { background: #FAFAFD; }
 .reveal .slide-number { background: transparent; color: var(--muted); font-size: 16px; }
 .reveal .controls { color: var(--accent); }
 .reveal .progress { color: var(--accent); }
-.dense .intro { font-size: 27px; line-height: 1.42; color: var(--muted); border-left: 4px solid var(--accent); padding-left: 18px; margin: 6px 0 34px; }
+.dense .intro { font-size: 26px; line-height: 1.42; color: var(--muted); border-left: 4px solid var(--accent); padding-left: 18px; margin: 0 0 30px; }
 .dense .intro p { margin: 0; }
 .dense .intro .intro-head { color: var(--navy); font-weight: 700; margin-top: 14px; }
-.dense h2 { font-size: 52px; margin: 10px 0 28px; }
+.dense h2 { font-size: 52px; margin: 0 0 20px; }
 .dense .card { padding: 20px 26px; }
 .dense .stat { font-size: 66px; margin-bottom: 6px; }
 .dense .stat-label { font-size: 24px; text-wrap: balance; }
-.dense .why { font-size: 30px; line-height: 1.4; margin: 0; }
+.dense .why { font-size: 30px; line-height: 1.4; margin: 0; text-wrap: pretty; }
 .blurb { font-size: 25px; line-height: 1.4; color: var(--muted); border-left: 4px solid var(--accent); padding-left: 18px; margin: 0 0 18px; }
 .runnote { position: absolute; bottom: 0; left: 0; right: 120px; font-size: 18px; color: var(--muted); }
 table.cmp { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 20px; line-height: 1.3; margin: 0 0 22px; }
@@ -76,7 +76,7 @@ table.cmp th.miss { background: #7a3d0e; }
     <div>
       <img src="IMG:docs/logo/logo-transparent.png" alt="The Second Chance Pathway Planner logo" style="height:76px; margin:0 0 28px">
       <h1 style="font-size:60px">The Second Chance Pathway Planner</h1>
-      <p style="font-size:29px; margin:22px 0 26px">Connecticut’s Clean Slate law has erased the convictions of 170,000 people. The Second Chance Pathway Planner works for individuals or caseworkers to check records, build 30-day plans, and practice conversations that matter.</p>
+      <p style="font-size:29px; margin:22px 0 26px">Connecticut’s Clean Slate law has erased the convictions of 170,000 people. While this law was meant to give people a fresh start, the state has struggled to notify the people whose convictions were erased. The Second Chance Pathway Planner works for individuals or caseworkers to check records, build 30-day plans, and practice conversations that matter.</p>
       <p style="font-size:24px; margin-bottom:18px; white-space:nowrap"><strong>Samantha Storch Malloy</strong> · Yale EMBA ’28 · MGT 409</p>
       <div class="links" style="font-size:20px">App: <a href="https://second-chance-pathway-planner.onrender.com/">second-chance-pathway-planner.onrender.com</a><br>Code: <a href="https://github.com/smalloy112321/second-chance">github.com/smalloy112321/second-chance</a></div>
     </div>
@@ -88,14 +88,15 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 2 PROBLEM -->
 <section class="dense">
   <div class="kicker">The problem</div>
-  <div class="intro"><p>Connecticut’s Clean Slate law (Public Act No. 21-32) was passed in May 2021 and signed into law in June 2021. While this law was meant to give people a fresh start by erasing convictions for 170,000 people, technology problems have delayed notifying these individuals. That means that many formerly incarcerated individuals are turning down jobs or apartments or checking “yes” on a conviction box over a record that no longer legally exists. This gap hits formerly incarcerated women especially hard: nearly half of the women at York Correctional Institution, Connecticut’s only women’s prison, are mothers. When a woman comes home, she is often trying to find work, secure housing, and reunify with her children all at once and many are doing it without a caseworker.</p><p class="intro-head">The law already helped her. Nobody told her.</p></div>
-  <div class="cols c3" style="gap:28px; margin-bottom:48px">
+  <h2>The law already helped her. Nobody told her.</h2>
+  <div class="intro"><p>Connecticut’s Clean Slate law (Public Act No. 21-32) was passed in May 2021 and signed into law in June 2021. While this law was meant to give people a fresh start by erasing convictions for 170,000 people, technology problems have delayed notifying these individuals. That means that many formerly incarcerated individuals are turning down jobs or apartments or checking “yes” on a conviction box over a record that no longer legally exists. This gap hits formerly incarcerated women especially hard: nearly half of the women at York Correctional Institution, Connecticut’s only women’s prison, are mothers. When a woman comes home, she is often trying to find work, secure housing, and reunify with her children all at once and many are doing it without a caseworker.</p></div>
+  <div class="cols" style="grid-template-columns: var(--bx, 1fr 1.1fr 1.25fr); gap:28px; margin-bottom:40px">
     <div class="card"><div class="stat">170,000</div><div class="stat-label">people have had their convictions erased under Connecticut’s Clean Slate law</div></div>
     <div class="card"><div class="stat">$16.6M</div><div class="stat-label">has been spent on the Clean Slate law but the benefit isn’t reaching the people it needs&nbsp;to</div></div>
     <div class="card"><div class="stat">27%</div><div class="stat-label">unemployment among formerly incarcerated people, about 5× the general public (43.6% for Black women)</div></div>
   </div>
   <div class="kicker">Why should we care?</div>
-  <p class="why">Connecticut has already spent the money and passed the law. The state is investing $16.6 million to implement Clean Slate. The benefit is there, but it isn’t reaching the people it was built for.</p>
+  <p class="why">Connecticut has already spent the money and passed the law. The state is investing $16.6 million to implement Clean Slate. The benefit is there, but it isn’t reaching the people it was built for. That’s where The Second Chance Pathway Planner comes in.</p>
   <div class="src">Sources: CT Mirror, July 15, 2026; Connecticut Public, Dec. 26, 2025; CT Capitol Dispatch, Mar. 18, 2026; NBC Connecticut, June 27, 2023; Prison Policy Initiative, 2018.</div>
   <aside class="notes">Connecticut passed Clean Slate in 2021. It has erased 170,000 people's convictions but has no system to tell them. Two groups: women who may already be erased and don't know it, and women coming home now who can't see when their waiting period ends. Personal tie: my father-in-law, Governor Dan Malloy, started this work, and I served on the board of the Women's Prison Association.</aside>
 </section>
@@ -104,6 +105,7 @@ table.cmp th.miss { background: #7a3d0e; }
 <section>
   <div class="kicker">What’s new</div>
   <h2 style="font-size:44px; margin-bottom:16px">No other tool answers: “Has my record already been erased?”</h2>
+  <div class="kicker" style="margin-bottom:8px">Here are tools that already exist:</div>
   <table class="cmp">
     <thead><tr><th style="width:15%">Category</th><th style="width:27%">Examples</th><th style="width:23%">What it does well</th><th class="miss">What it misses</th></tr></thead>
     <tbody>
@@ -115,7 +117,7 @@ table.cmp th.miss { background: #7a3d0e; }
       <tr><td><strong>ChatGPT, Claude, Grok, etc.</strong></td><td>General AI chat</td><td>Free, available anytime, conversational</td><td class="miss">Can get CT rules and date math wrong, doesn’t know which local resources are current, and has no reason to send her to a lawyer.</td></tr>
     </tbody>
   </table>
-  <div class="kicker" style="margin-bottom:8px">What’s new in The Second Chance Pathway Planner</div>
+  <div class="kicker" style="margin-bottom:8px">What’s new in The Second Chance Pathway Planner:</div>
   <div class="new5">
     <div class="card"><strong>Answers the question</strong>Likely erased, eligible on a date, or talk to legal aid</div>
     <div class="card"><strong>Rules in code</strong>Eligibility from the state’s rules, not the AI: same facts, same answer</div>
@@ -129,17 +131,17 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 4 AGENTS -->
 <section>
   <div class="kicker">How the agents work</div>
-  <h2 style="margin:10px 0 16px">8 AI agents + a rules engine with no AI</h2>
-  <p class="blurb">The app uses eight AI agents plus one part that is not AI: the Clean Slate rules engine, written in plain Python. The agents don’t decide among themselves who works next. A short Python program (the orchestrator) hands the work along in a fixed order. Every run takes the same path, so the cost is predictable, each step can be tested on its own, and agents can’t pass work back and forth forever.</p>
+  <h2 style="font-size:46px; margin:10px 0 16px">The app uses eight AI agents plus one part that is not AI.</h2>
+  <p class="blurb">The part that is not AI is the Clean Slate rules engine, written in plain Python. The agents don’t decide among themselves who works next. A short Python program (the orchestrator) hands the work along in a fixed order. Every run takes the same path, so the cost is predictable, each step can be tested on its own, and agents can’t pass work back and forth forever.</p>
   <div class="cols" style="grid-template-columns: 1fr 400px; gap:28px; align-items:center">
     <div class="diagram" style="--dh:610px"><!--DIAGRAM--></div>
     <div class="card" style="font-size:24px; padding:22px 26px">
       <h3 style="font-size:30px; margin-bottom:12px">Key design choices</h3>
       <p><strong>The rules engine decides</strong> each conviction’s result; the screener can’t change it.</p>
-      <p><strong>The planner’s tools:</strong> 41 checked CT resources and the nearest Reentry Welcome Center.</p>
+      <p><strong>The planner’s tools</strong> search 41 checked CT resources and find the nearest Reentry Welcome Center.</p>
       <p><strong>The verifier</strong> checks every plan and sends it back once if needed.</p>
       <p><strong>The Practice Room</strong> agents never see her convictions.</p>
-      <p class="small" style="margin:0">All agents use gpt-6-luna through Portkey.</p>
+      <p style="margin:0"><strong>All eight agents</strong> use gpt-6-luna through Portkey.</p>
     </div>
   </div>
   <aside class="notes">Safety guard first, then intake turns answers or notes into a profile, then the rules engine. The screener explains the result, the planner builds the plan with tools, and the verifier checks it. In the Practice Room, the role-play partner, coach, and summary never see her convictions.</aside>
@@ -148,8 +150,8 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 5 DEMO: SELF-SERVE -->
 <section>
   <div class="kicker">Demo 1 · Planning for herself</div>
-  <h2 style="margin-bottom:14px">Judith checks her record: about 7 minutes, half a cent</h2>
-  <p class="blurb">Judith lives in Hartford, has two children and a 2009 drug possession conviction. She isn’t sure if it was a misdemeanor or a felony.</p>
+  <h2 style="margin-bottom:14px">A formerly convicted woman checks her record</h2>
+  <p class="blurb">Judith lives in Hartford, has two children, and a 2009 drug possession conviction. She isn’t sure if it was a misdemeanor or a felony. She uses the app to check her record, which takes 7 minutes and half a cent.</p>
   <img class="shot" style="max-height:670px" src="IMG:docs/slides/img/run1-board.jpg" alt="Self-serve steps 1 to 7: her name, questions, check answers, record check, results, goals, and 30-day plan">
   <div class="runnote">Logged run on the live code, November 9, 2026 (session 5bc6a3b2): 10 model calls; 34,626 input tokens (11,353 cached) + 6,077 output = 40,703 tokens, $0.0055.</div>
   <aside class="notes">12 questions, then her result and next steps (official record first), then her goals, then a 4-week plan with checked contacts. The app says her conviction needs more information and tells her exactly how to get her official record. The verifier sent the first plan back once, which is why this run cost more than the $0.0037 median.</aside>
@@ -158,9 +160,9 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 6 DEMO: CASEWORKER -->
 <section>
   <div class="kicker">Demo 2 · A caseworker</div>
-  <h2 style="margin-bottom:14px">She pastes her case notes as they are</h2>
-  <p class="blurb">A caseworker doesn’t have to sort the facts into a form. She pastes her case notes as they are, and the intake agent pulls out what the rules engine needs. These notes are for a sample client with three convictions, current probation, and an open DCF case. Before Submit, a free checklist in code lists facts the notes leave out.</p>
-  <img class="shot" style="max-height:640px" src="IMG:docs/slides/img/caseworker-board.jpg" alt="Caseworker steps 1 to 5: start, pasted case notes with the missing-facts checklist, record check, record results, and 30-day plan">
+  <h2 style="margin-bottom:14px">A caseworker checks his client’s record</h2>
+  <p class="blurb">Tauhid is a caseworker in New Haven, CT. He doesn’t have to sort the facts about his clients into a form. Instead, he uses the app to paste his case notes as they are, and the intake agent pulls out what the rules engine needs. These notes are for a sample client with three convictions, current probation, and an open DCF case. Before Submit, a free checklist in code lists facts the notes leave out. The record check and 30-day plan took about 35 seconds and cost less than half a cent.</p>
+  <img class="shot" style="max-height:575px" src="IMG:docs/slides/img/caseworker-board.jpg" alt="Caseworker steps 1 to 5: start, pasted case notes with the missing-facts checklist, record check, record results, and 30-day plan">
   <div class="runnote">Logged run, November 9, 2026 (session 53477090): 6 model calls; 20,523 input tokens (1,351 cached) + 5,104 output = 25,627 tokens, $0.0045.</div>
   <aside class="notes">Caseworkers also see the rules engine's reason codes and the disclosure guidance, and the plan is written about "your client." Two convictions are likely erased once probation ends; one needs the year of the offense.</aside>
 </section>
@@ -168,8 +170,8 @@ table.cmp th.miss { background: #7a3d0e; }
 <!-- 7 DEMO: PRACTICE -->
 <section>
   <div class="kicker">Demo 3 · Practice Room</div>
-  <h2 style="margin-bottom:14px">Rehearse the hard conversation, with a coach</h2>
-  <p class="blurb">“I want to practice a conversation” on the homepage goes straight to the Practice Room. For each answer, the safety guard checks it, then the role-play partner and coach run at the same time, then code checks the coach’s output.</p>
+  <h2 style="margin-bottom:14px">A formerly incarcerated woman preps for a job interview</h2>
+  <p class="blurb">Anna was in prison for a 2014 drug conviction. Since then, she’s finished a food safety course and volunteered in a kitchen. She is ready for a job and uses the app to practice how to approach her history. For each answer, the safety guard checks it, then the role-play partner and coach run at the same time, then code checks the coach’s output. Feedback came back about 5 seconds after each answer, and the whole session cost about one-seventh of a cent.</p>
   <img class="shot" style="max-height:610px" src="IMG:docs/screenshots/deck/practice-only-slide.jpg" alt="Practice Room: choose a conversation, coach feedback, summary">
   <div class="runnote">Logged practice-only session, November 8, 2026 (session b7cde69c): two answers and a summary; 7 model calls, 9,218 tokens, about $0.0015.</div>
   <aside class="notes">Hiring manager, landlord, or social worker; friendly, neutral, or skeptical. The coach scores five skills and suggests a "Try saying..." rewrite. The role-play partner and coach never see her convictions. Code keeps the scores at 1 to 3 per skill and replaces any coaching that tells her to deny a record that isn't erased.</aside>
