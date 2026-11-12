@@ -46,6 +46,14 @@ html, body { background: #FAFAFD; }
 .reveal .slide-number { background: transparent; color: var(--muted); font-size: 16px; }
 .reveal .controls { color: var(--accent); }
 .reveal .progress { color: var(--accent); }
+.dense { font-size: 24px; }
+.dense p, .dense li { line-height: 1.38; margin-bottom: .55em; }
+.dense .intro { font-size: 23px; color: var(--muted); border-left: 4px solid var(--accent); padding-left: 16px; margin: 4px 0 14px; }
+.dense h2 { font-size: 44px; margin-bottom: 14px; }
+.dense .stack { display: flex; flex-direction: column; gap: 18px; }
+.dense .card { padding: 14px 20px; }
+.dense .stat { font-size: 56px; margin-bottom: 4px; }
+.dense .stat-label { font-size: 21px; }
 </style>
 </head>
 <body>
@@ -67,20 +75,27 @@ html, body { background: #FAFAFD; }
 </section>
 
 <!-- 2 PROBLEM -->
-<section>
+<section class="dense">
   <div class="kicker">The problem</div>
+  <p class="intro">Connecticut’s Clean Slate law (Public Act No. 21-32) was passed in May 2021 and signed into law in June 2021. While this law was meant to give people a fresh start by erasing convictions for 170,000 people, technology problems have delayed notifying these individuals. That means that many formerly incarcerated individuals are turning down jobs or apartments or checking “yes” on a conviction box over a record that no longer legally exists. This gap hits formerly incarcerated women especially hard: nearly half of the women at York Correctional Institution, Connecticut’s only women’s prison, are mothers. When a woman comes home, she is often trying to find work, secure housing, and reunify with her children all at once and many are doing it without a caseworker.</p>
   <h2>The law already helped her. Nobody told her.</h2>
-  <div class="cols c3" style="margin-bottom:56px">
-    <div class="card"><div class="stat">170,000</div><div class="stat-label">people have had their convictions erased under Connecticut’s Clean Slate law</div></div>
-    <div class="card"><div class="stat">27%</div><div class="stat-label">unemployment among formerly incarcerated people, about 5× the general public (43.6% for Black women)</div></div>
-    <div class="card"><div class="stat">$16.6M</div><div class="stat-label">the state is spending on Clean Slate, but the benefit isn’t reaching people</div></div>
+  <div class="cols" style="grid-template-columns: 1.45fr 0.55fr; gap:30px">
+    <div>
+      <p>Today, there are two groups of women who face this problem in different ways:</p>
+      <ul>
+        <li><strong>Women leaving prison now</strong> piece together their path from several places. They may get help from a reentry program if they can get a spot, call 2-1-1, search online, or rely on word of mouth from friends and family. Most aren’t yet eligible for Clean Slate, which requires seven to ten years without a new conviction, and few know the waiting period exists or when their own clock runs out. Without that date, they can’t see the finish line or plan toward it.</li>
+        <li><strong>Women who came home years ago</strong> may already have had their records erased without ever being told. The state erased convictions for 170,000 people but has no system to notify them. So, many women keep answering “yes” on job and housing applications for convictions that no longer legally exist, turn down opportunities they assume they’d be rejected for, or never apply at all. Some have spent years building a life around a record that, legally, is gone.</li>
+      </ul>
+      <p>Caseworkers who do help are stretched thin. They have to look up eligibility rules, track down local resources, and coach clients for interviews and court dates, often for every client from scratch. The cost of not having a solution includes lost income, lost time, frustration, and the immeasurable cost to families.</p>
+      <p style="margin:0"><strong>Why should we care?</strong> Connecticut has already spent the money and passed the law. The state is investing $16.6 million to implement Clean Slate. The benefit is there, but it isn’t reaching the people it was built for.</p>
+    </div>
+    <div class="stack">
+      <div class="card"><div class="stat">170,000</div><div class="stat-label">people have had their convictions erased under Connecticut’s Clean Slate law</div></div>
+      <div class="card"><div class="stat">27%</div><div class="stat-label">unemployment among formerly incarcerated people, about 5× the general public (43.6% for Black women)</div></div>
+      <div class="card"><div class="stat">$16.6M</div><div class="stat-label">has been spent on the Clean Slate law but the benefit isn’t reaching the people it needs to</div></div>
+    </div>
   </div>
-  <div class="cols c2" style="gap:34px">
-    <div><h3>Women who came home years ago</h3><p>May already be erased, but still check “yes” on job and housing forms, or never apply.</p></div>
-    <div><h3>Women leaving prison now</h3><p>Don’t know when their 7–10 year clock ends. Many are mothers juggling work, housing, and children at once.</p></div>
-  </div>
-  <p style="margin-top:40px; font-size:32px"><strong>And the state has no system to tell them.</strong> Most were never told their convictions are gone.</p>
-  <div class="src">Sources: CT Mirror, July 15, 2026; Connecticut Public, Dec. 26, 2025; CT Capitol Dispatch, Mar. 18, 2026; Prison Policy Initiative, 2018.</div>
+  <div class="src">Sources: CT Mirror, July 15, 2026; Connecticut Public, Dec. 26, 2025; CT Capitol Dispatch, Mar. 18, 2026; NBC Connecticut, June 27, 2023; Prison Policy Initiative, 2018.</div>
   <aside class="notes">Connecticut passed Clean Slate in 2021. It has erased 170,000 people's convictions but has no system to tell them. Two groups: women who may already be erased and don't know it, and women coming home now who can't see when their waiting period ends. Personal tie: my father-in-law, Governor Dan Malloy, started this work, and I served on the board of the Women's Prison Association.</aside>
 </section>
 
